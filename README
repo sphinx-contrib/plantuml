@@ -1,0 +1,28 @@
+PlantUML for Sphinx
+===================
+
+Usage
+-----
+
+First, you may need to specify plantuml command in your conf.py::
+
+    plantuml = ['java', '-jar', '/path/to/plantuml.jar']
+
+Instead, you can install a wrapper script in your PATH::
+
+    % cat <<EOT > /usr/local/bin/plantuml
+    #!/bin/sh -e
+    java -jar /path/to/plantuml.jar "$@"
+    EOT
+    % chmod +x /usr/local/bin/plantuml
+
+Then, write PlantUML text under ``.. uml::`` directive::
+
+    .. uml::
+
+       Alice -> Bob: Hi!
+       Alice <- Bob: How are you?
+
+For details, please see PlantUML_ documentation.
+
+.. _PlantUML: http://plantuml.sourceforge.net/
