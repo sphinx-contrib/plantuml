@@ -28,6 +28,7 @@ def with_parsed(func):
         src = '\n'.join(l[4:] for l in func.__doc__.splitlines()[2:])
         _parser.parse(src, doc)
         func(doc.children)
+    test.func_name = func.func_name
     return test
 
 @with_parsed

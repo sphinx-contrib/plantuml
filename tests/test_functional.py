@@ -44,6 +44,7 @@ def with_runsphinx(builder, confoverrides={'plantuml': _fakecmd}):
             finally:
                 os.unlink(os.path.join(_srcdir, 'index.rst'))
                 shutil.rmtree(_outdir)
+        test.func_name = func.func_name
         return test
     return wrapfunc
 
