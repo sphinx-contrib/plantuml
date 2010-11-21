@@ -26,7 +26,7 @@ def readfile(fname):
 def runsphinx(text, builder, confoverrides):
     f = open(os.path.join(_srcdir, 'index.rst'), 'w')
     try:
-        f.write(text)
+        f.write(text.encode('utf-8'))
     finally:
         f.close()
     app = Sphinx(_srcdir, _fixturedir, _outdir, _outdir, builder,
@@ -92,6 +92,19 @@ def test_buildhtml_alt():
        Hello
     """
     assert 'alt="Foo &lt;Bar&gt;"' in readfile('index.html')
+
+@with_runsphinx('html')
+def test_buildhtml_nonascii():
+    u"""Generate simple HTML of non-ascii diagram
+
+    .. uml::
+
+       \u3042
+    """
+    files = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.png'))
+    content = readfile(files[0]).splitlines()
+    assert '-charset utf-8' in content[0]
+    assert_equals(u'\u3042', content[1].decode('utf-8'))
 
 @with_runsphinx('latex')
 def test_buildlatex_simple():

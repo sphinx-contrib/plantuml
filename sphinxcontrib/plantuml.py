@@ -60,7 +60,7 @@ def generate_plantuml_args(self):
         args = [self.builder.config.plantuml]
     else:
         args = list(self.builder.config.plantuml)
-    args.append('-pipe')
+    args.extend('-pipe -charset utf-8'.split())
     return args
 
 def render_plantuml(self, node):
@@ -78,7 +78,7 @@ def render_plantuml(self, node):
                 raise
             raise PlantUmlError('plantuml command %r cannot be run'
                                 % self.builder.config.plantuml)
-        serr = p.communicate(node['uml'])[1]
+        serr = p.communicate(node['uml'].encode('utf-8'))[1]
         if p.returncode != 0:
             raise PlantUmlError('error while running plantuml\n\n' + serr)
         return refname
