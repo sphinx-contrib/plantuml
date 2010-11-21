@@ -12,7 +12,6 @@ def setup():
     _srcdir = os.path.join(_tempdir, 'src')
     _outdir = os.path.join(_tempdir, 'out')
     os.mkdir(_srcdir)
-    os.mkdir(_outdir)
 
 def teardown():
     shutil.rmtree(_tempdir)
@@ -38,11 +37,13 @@ def with_runsphinx(builder, confoverrides={'plantuml': _fakecmd}):
     def wrapfunc(func):
         def test():
             src = '\n'.join(l[4:] for l in func.__doc__.splitlines()[2:])
-            runsphinx(src, builder, confoverrides)
+            os.mkdir(_outdir)
             try:
+                runsphinx(src, builder, confoverrides)
                 func()
             finally:
                 os.unlink(os.path.join(_srcdir, 'index.rst'))
+                shutil.rmtree(_outdir)
         return test
     return wrapfunc
 
@@ -99,11 +100,10 @@ def test_buildlatex_simple():
 
        Hello
     """
-    files = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.png'))
+    files = glob.glob(os.path.join(_outdir, 'plantuml-*.png'))
     assert len(files) == 1
-    assert '<img src="_images/plantuml' in readfile('index.html')
+    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
 
     content = readfile(files[0]).splitlines()
     assert '-pipe' in content[0]
     assert_equals('Hello', content[1])
-    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
