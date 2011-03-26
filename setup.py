@@ -2,11 +2,7 @@
 
 from setuptools import setup, find_packages
 
-long_desc = '''
-This package contains the plantuml Sphinx extension.
-
-With this extension, you can embed PlantUML diagram by ``.. uml::` directive.
-'''
+long_desc = open('README').read()
 
 requires = ['Sphinx>=0.6']
 
