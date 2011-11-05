@@ -30,15 +30,13 @@ For details, please see PlantUML_ documentation.
 Configuration
 -------------
 
-.. confval:: plantuml
+plantuml
+  Path to plantuml executable. (default: 'plantuml')
 
-   Path to plantuml executable. (default: 'plantuml')
+plantuml_output_format
+  Type of output image. (default: 'png')
 
-.. confval:: plantuml_output_format
+  :png: generate only .png
+  :svg: generate .svg and .png as a fallback
 
-   Type of output image. (default: 'png')
-
-   :png: generate only .png
-   :svg: generate .svg and .png as a fallback
-
-   Currently this option is only supported by HTML renderer.
+  Currently this option is only supported by HTML renderer.
