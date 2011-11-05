@@ -26,3 +26,16 @@ Then, write PlantUML text under ``.. uml::`` directive::
 For details, please see PlantUML_ documentation.
 
 .. _PlantUML: http://plantuml.sourceforge.net/
+
+Configuration
+-------------
+
+.. confval:: plantuml
+
+   Path to plantuml executable. (default: 'plantuml')
+
+.. confval:: plantuml_output_format
+
+   Type of output image. (default: 'png')
+
+   Currently this option is only supported by HTML renderer.

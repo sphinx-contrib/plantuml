@@ -45,9 +45,9 @@ class UmlDirective(Directive):
         node['alt'] = self.options.get('alt', None)
         return [node]
 
-def generate_name(self, node):
+def generate_name(self, node, fileformat):
     key = sha1(node['uml'].encode('utf-8')).hexdigest()
-    fname = 'plantuml-%s.png' % key
+    fname = 'plantuml-%s.%s' % (key, fileformat)
     imgpath = getattr(self.builder, 'imgpath', None)
     if imgpath:
         return ('/'.join((self.builder.imgpath, fname)),
@@ -55,24 +55,30 @@ def generate_name(self, node):
     else:
         return fname, os.path.join(self.builder.outdir, fname)
 
-def generate_plantuml_args(self):
+_ARGS_BY_FILEFORMAT = {
+    'png': (),
+    }
+
+def generate_plantuml_args(self, fileformat):
     if isinstance(self.builder.config.plantuml, basestring):
         args = [self.builder.config.plantuml]
     else:
         args = list(self.builder.config.plantuml)
     args.extend('-pipe -charset utf-8'.split())
+    args.extend(_ARGS_BY_FILEFORMAT[fileformat])
     return args
 
-def render_plantuml(self, node):
-    refname, outfname = generate_name(self, node)
+def render_plantuml(self, node, fileformat):
+    refname, outfname = generate_name(self, node, fileformat)
     if os.path.exists(outfname):
-        return refname  # don't regenerate
+        return refname, outfname  # don't regenerate
     ensuredir(os.path.dirname(outfname))
     f = open(outfname, 'wb')
     try:
         try:
-            p = subprocess.Popen(generate_plantuml_args(self), stdout=f,
-                                 stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(generate_plantuml_args(self, fileformat),
+                                 stdout=f, stdin=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
         except OSError, err:
             if err.errno != ENOENT:
                 raise
@@ -81,26 +87,43 @@ def render_plantuml(self, node):
         serr = p.communicate(node['uml'].encode('utf-8'))[1]
         if p.returncode != 0:
             raise PlantUmlError('error while running plantuml\n\n' + serr)
-        return refname
+        return refname, outfname
     finally:
         f.close()
 
+def _get_png_tag(self, fnames, alt):
+    refname, _outfname = fnames['png']
+    return ('<img src="%s" alt="%s" />\n'
+            % (self.encode(refname), self.encode(alt)))
+
+_KNOWN_FORMATS = {
+    'png': (('png',), _get_png_tag),
+    }
+
 def html_visit_plantuml(self, node):
     try:
-        refname = render_plantuml(self, node)
+        format = self.builder.config.plantuml_output_format
+        try:
+            fileformats, gettag = _KNOWN_FORMATS[format]
+        except KeyError:
+            raise PlantUmlError(
+                'plantuml_output_format must be one of %s, but is %r'
+                % (', '.join(map(repr, _KNOWN_FORMATS)), format))
+        # fnames: {fileformat: (refname, outfname), ...}
+        fnames = dict((e, render_plantuml(self, node, e))
+                      for e in fileformats)
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
+
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
-    self.body.append('<img src="%s" alt="%s" />\n'
-                     % (self.encode(refname),
-                        self.encode(node['alt'] or node['uml'])))
+    self.body.append(gettag(self, fnames, alt=node['alt'] or node['uml']))
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
 def latex_visit_plantuml(self, node):
     try:
-        refname = render_plantuml(self, node)
+        refname, _outfname = render_plantuml(self, node, 'png')
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
@@ -113,3 +136,4 @@ def setup(app):
                  latex=(latex_visit_plantuml, None))
     app.add_directive('uml', UmlDirective)
     app.add_config_value('plantuml', 'plantuml', 'html')
+    app.add_config_value('plantuml_output_format', 'png', 'html')
