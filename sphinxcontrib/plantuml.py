@@ -8,7 +8,7 @@
     :copyright: Copyright 2010 by Yuya Nishihara <yuya@tcha.org>.
     :license: BSD, see LICENSE for details.
 """
-import os, subprocess
+import os, re, subprocess
 try:
     from hashlib import sha1
 except ImportError:  # Python<2.5
@@ -57,6 +57,7 @@ def generate_name(self, node, fileformat):
 
 _ARGS_BY_FILEFORMAT = {
     'png': (),
+    'svg': '-tsvg'.split(),
     }
 
 def generate_plantuml_args(self, fileformat):
@@ -96,8 +97,37 @@ def _get_png_tag(self, fnames, alt):
     return ('<img src="%s" alt="%s" />\n'
             % (self.encode(refname), self.encode(alt)))
 
+def _get_svg_style(fname):
+    f = open(fname)
+    try:
+        for l in f:
+            m = re.search(r'<svg\b([^<>]+)', l)
+            if m:
+                attrs = m.group(1)
+                break
+        else:
+            return
+    finally:
+        f.close()
+
+    m = re.search(r'\bstyle=[\'"]([^\'"]+)', attrs)
+    if not m:
+        return
+    return m.group(1)
+
+def _get_svg_tag(self, fnames, alt):
+    refname, outfname = fnames['svg']
+    return '\n'.join([
+        # copy width/height style from <svg> tag, so that <object> area
+        # has enough space.
+        '<object data="%s" type="image/svg+xml" style="%s">' % (
+            self.encode(refname), _get_svg_style(outfname) or ''),
+        _get_png_tag(self, fnames, alt),
+        '</object>'])
+
 _KNOWN_FORMATS = {
     'png': (('png',), _get_png_tag),
+    'svg': (('png', 'svg'), _get_svg_tag),
     }
 
 def html_visit_plantuml(self, node):

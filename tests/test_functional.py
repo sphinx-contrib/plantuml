@@ -33,7 +33,9 @@ def runsphinx(text, builder, confoverrides):
                  confoverrides)
     app.build()
 
-def with_runsphinx(builder, confoverrides={'plantuml': _fakecmd}):
+def with_runsphinx(builder, **kwargs):
+    confoverrides = {'plantuml': _fakecmd}
+    confoverrides.update(kwargs)
     def wrapfunc(func):
         def test():
             src = '\n'.join(l[4:] for l in func.__doc__.splitlines()[2:])
@@ -48,21 +50,28 @@ def with_runsphinx(builder, confoverrides={'plantuml': _fakecmd}):
         return test
     return wrapfunc
 
-@with_runsphinx('html')
-def test_buildhtml_simple():
+@with_runsphinx('html', plantuml_output_format='svg')
+def test_buildhtml_simple_with_svg():
     """Generate simple HTML
 
     .. uml::
 
        Hello
     """
-    files = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.png'))
-    assert len(files) == 1
-    assert '<img src="_images/plantuml' in readfile('index.html')
+    pngfiles = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.png'))
+    assert len(pngfiles) == 1
+    svgfiles = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.svg'))
+    assert len(svgfiles) == 1
 
-    content = readfile(files[0]).splitlines()
-    assert '-pipe' in content[0]
-    assert_equals('Hello', content[1])
+    assert '<img src="_images/plantuml' in readfile('index.html')
+    assert '<object data="_images/plantuml' in readfile('index.html')
+
+    pngcontent = readfile(pngfiles[0]).splitlines()
+    assert '-pipe' in pngcontent[0]
+    assert_equals('Hello', pngcontent[1])
+    svgcontent = readfile(svgfiles[0]).splitlines()
+    assert '-tsvg' in svgcontent[0]
+    assert_equals('Hello', svgcontent[1])
 
 @with_runsphinx('html')
 def test_buildhtml_samediagram():
