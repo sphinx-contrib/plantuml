@@ -157,7 +157,7 @@ def latex_visit_plantuml(self, node):
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
-    self.body.append('\\includegraphics{%s}' % self.encode(refname))
+    self.body.append('\n\\includegraphics{%s}\n' % self.encode(refname))
     raise nodes.SkipNode
 
 def setup(app):
