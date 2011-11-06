@@ -8,7 +8,7 @@
     :copyright: Copyright 2010 by Yuya Nishihara <yuya@tcha.org>.
     :license: BSD, see LICENSE for details.
 """
-import os, re, shlex, subprocess
+import errno, os, re, shlex, subprocess
 try:
     from hashlib import sha1
 except ImportError:  # Python<2.5
@@ -159,8 +159,15 @@ def _convert_eps_to_pdf(self, refname, fname):
         args = list(self.builder.config.plantuml_epstopdf)
     args.append(fname)
     try:
-        p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE)
+        try:
+            p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+        except OSError, err:
+            # workaround for missing shebang of epstopdf script
+            if err.errno != getattr(errno, 'ENOEXEC', 0):
+                raise
+            p = subprocess.Popen(['bash'] + args, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
     except OSError, err:
         if err.errno != ENOENT:
             raise
