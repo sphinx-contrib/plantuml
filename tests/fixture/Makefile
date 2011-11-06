@@ -14,7 +14,7 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf pdf text man changes linkcheck doctest
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -29,6 +29,7 @@ help:
 	@echo "  epub       to make an epub"
 	@echo "  latex      to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
 	@echo "  latexpdf   to make LaTeX files and run them through pdflatex"
+	@echo "  pdf        to make PDF files"
 	@echo "  text       to make text files"
 	@echo "  man        to make manual pages"
 	@echo "  changes    to make an overview of all changed/added/deprecated items"
@@ -104,6 +105,11 @@ latexpdf:
 	@echo "Running LaTeX files through pdflatex..."
 	$(MAKE) -C $(BUILDDIR)/latex all-pdf
 	@echo "pdflatex finished; the PDF files are in $(BUILDDIR)/latex."
+
+pdf:
+	$(SPHINXBUILD) -b pdf $(ALLSPHINXOPTS) $(BUILDDIR)/pdf
+	@echo
+	@echo "Build finished. The PDF files are in $(BUILDDIR)/pdf."
 
 text:
 	$(SPHINXBUILD) -b text $(ALLSPHINXOPTS) $(BUILDDIR)/text
