@@ -5,6 +5,7 @@ from nose.tools import *
 
 _fixturedir = os.path.join(os.path.dirname(__file__), 'fixture')
 _fakecmd = os.path.join(os.path.dirname(__file__), 'fakecmd.py')
+_fakeepstopdf = os.path.join(os.path.dirname(__file__), 'fakeepstopdf.py')
 
 def setup():
     global _tempdir, _srcdir, _outdir
@@ -34,7 +35,7 @@ def runsphinx(text, builder, confoverrides):
     app.build()
 
 def with_runsphinx(builder, **kwargs):
-    confoverrides = {'plantuml': _fakecmd}
+    confoverrides = {'plantuml': _fakecmd, 'plantuml_epstopdf': _fakeepstopdf}
     confoverrides.update(kwargs)
     def wrapfunc(func):
         def test():
@@ -146,3 +147,23 @@ def test_buildlatex_simple_with_eps():
     content = readfile(files[0]).splitlines()
     assert '-teps' in content[0]
     assert_equals('Hello', content[1])
+
+@with_runsphinx('latex', plantuml_latex_output_format='pdf')
+def test_buildlatex_simple_with_pdf():
+    """Generate simple LaTeX with PDF
+
+    .. uml::
+
+       Hello
+    """
+    epsfiles = glob.glob(os.path.join(_outdir, 'plantuml-*.eps'))
+    pdffiles = glob.glob(os.path.join(_outdir, 'plantuml-*.pdf'))
+    assert len(epsfiles) == 1
+    assert len(pdffiles) == 1
+    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
+
+    epscontent = readfile(epsfiles[0]).splitlines()
+    assert '-teps' in epscontent[0]
+    assert_equals('Hello', epscontent[1])
+    pdfcontent = readfile(pdffiles[0]).splitlines()
+    assert os.path.basename(epsfiles[0]) in pdfcontent[0]

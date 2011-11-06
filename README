@@ -43,4 +43,11 @@ plantuml_latex_output_format
   Type of output image for LaTeX renderer. (default: 'png')
 
   :eps: generate .eps (not supported by `pdflatex`)
+  :pdf: generate .eps and convert it to .pdf (requires `epstopdf`)
   :png: generate .png
+
+  Because embedded png looks pretty bad, it is recommended to choose `pdf`
+  for `pdflatex` or `eps` for `platex`.
+
+plantuml_epstopdf
+  Path to epstopdf executable. (default: 'epstopdf')

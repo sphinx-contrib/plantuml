@@ -152,21 +152,42 @@ def html_visit_plantuml(self, node):
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
+def _convert_eps_to_pdf(self, refname, fname):
+    if isinstance(self.builder.config.plantuml_epstopdf, basestring):
+        args = shlex.split(self.builder.config.plantuml_epstopdf)
+    else:
+        args = list(self.builder.config.plantuml_epstopdf)
+    args.append(fname)
+    try:
+        p = subprocess.Popen(args, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+    except OSError, err:
+        if err.errno != ENOENT:
+            raise
+        raise PlantUmlError('epstopdf command %r cannot be run'
+                            % self.builder.config.plantuml_epstopdf)
+    serr = p.communicate()[1]
+    if p.returncode != 0:
+        raise PlantUmlError('error while running epstopdf\n\n' + serr)
+    return refname[:-4] + '.pdf', fname[:-4] + '.pdf'
+
 _KNOWN_LATEX_FORMATS = {
-    'eps': ('eps',),
-    'png': ('png',),
+    'eps': ('eps', lambda self, refname, fname: (refname, fname)),
+    'pdf': ('eps', _convert_eps_to_pdf),
+    'png': ('png', lambda self, refname, fname: (refname, fname)),
     }
 
 def latex_visit_plantuml(self, node):
     try:
         format = self.builder.config.plantuml_latex_output_format
         try:
-            fileformat, = _KNOWN_LATEX_FORMATS[format]
+            fileformat, postproc = _KNOWN_LATEX_FORMATS[format]
         except KeyError:
             raise PlantUmlError(
                 'plantuml_latex_output_format must be one of %s, but is %r'
                 % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), format))
-        refname, _outfname = render_plantuml(self, node, fileformat)
+        refname, outfname = render_plantuml(self, node, fileformat)
+        refname, outfname = postproc(self, refname, outfname)
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
@@ -180,4 +201,5 @@ def setup(app):
     app.add_directive('uml', UmlDirective)
     app.add_config_value('plantuml', 'plantuml', 'html')
     app.add_config_value('plantuml_output_format', 'png', 'html')
+    app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
