@@ -201,6 +201,16 @@ def latex_visit_plantuml(self, node):
     self.body.append('\n\\includegraphics{%s}\n' % self.encode(refname))
     raise nodes.SkipNode
 
+def pdf_visit_plantuml(self, node):
+    try:
+        refname, outfname = render_plantuml(self, node, 'eps')
+        refname, outfname = _convert_eps_to_pdf(self, refname, outfname)
+    except PlantUmlError, err:
+        self.builder.warn(str(err))
+        raise nodes.SkipNode
+    rep = nodes.image(uri=outfname, alt=node['alt'] or node['uml'])
+    node.parent.replace(node, rep)
+
 def setup(app):
     app.add_node(plantuml,
                  html=(html_visit_plantuml, None),
@@ -210,3 +220,8 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
+
+    # imitate what app.add_node() does
+    if 'rst2pdf.pdfbuilder' in app.config.extensions:
+        from rst2pdf.pdfbuilder import PDFTranslator as translator
+        setattr(translator, 'visit_' + plantuml.__name__, pdf_visit_plantuml)

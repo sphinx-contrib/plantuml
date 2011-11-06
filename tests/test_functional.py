@@ -167,3 +167,22 @@ def test_buildlatex_simple_with_pdf():
     assert_equals('Hello', epscontent[1])
     pdfcontent = readfile(pdffiles[0]).splitlines()
     assert os.path.basename(epsfiles[0]) in pdfcontent[0]
+
+@with_runsphinx('pdf')
+def test_buildpdf_simple():
+    """Generate simple PDF
+
+    .. uml::
+
+       Hello
+    """
+    epsfiles = glob.glob(os.path.join(_outdir, 'plantuml-*.eps'))
+    pdffiles = glob.glob(os.path.join(_outdir, 'plantuml-*.pdf'))
+    assert len(epsfiles) == 1
+    assert len(pdffiles) == 1
+
+    epscontent = readfile(epsfiles[0]).splitlines()
+    assert '-teps' in epscontent[0]
+    assert_equals('Hello', epscontent[1])
+    pdfcontent = readfile(pdffiles[0]).splitlines()
+    assert os.path.basename(epsfiles[0]) in pdfcontent[0]
