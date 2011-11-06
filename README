@@ -6,7 +6,7 @@ Usage
 
 First, you may need to specify plantuml command in your conf.py::
 
-    plantuml = ['java', '-jar', '/path/to/plantuml.jar']
+    plantuml = 'java -jar /path/to/plantuml.jar'
 
 Instead, you can install a wrapper script in your PATH::
 

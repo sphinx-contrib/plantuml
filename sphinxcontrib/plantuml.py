@@ -8,7 +8,7 @@
     :copyright: Copyright 2010 by Yuya Nishihara <yuya@tcha.org>.
     :license: BSD, see LICENSE for details.
 """
-import os, re, subprocess
+import os, re, shlex, subprocess
 try:
     from hashlib import sha1
 except ImportError:  # Python<2.5
@@ -63,7 +63,7 @@ _ARGS_BY_FILEFORMAT = {
 
 def generate_plantuml_args(self, fileformat):
     if isinstance(self.builder.config.plantuml, basestring):
-        args = [self.builder.config.plantuml]
+        args = shlex.split(self.builder.config.plantuml)
     else:
         args = list(self.builder.config.plantuml)
     args.extend('-pipe -charset utf-8'.split())
