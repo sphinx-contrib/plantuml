@@ -56,6 +56,7 @@ def generate_name(self, node, fileformat):
         return fname, os.path.join(self.builder.outdir, fname)
 
 _ARGS_BY_FILEFORMAT = {
+    'eps': '-teps'.split(),
     'png': (),
     'svg': '-tsvg'.split(),
     }
@@ -125,7 +126,7 @@ def _get_svg_tag(self, fnames, alt):
         _get_png_tag(self, fnames, alt),
         '</object>'])
 
-_KNOWN_FORMATS = {
+_KNOWN_HTML_FORMATS = {
     'png': (('png',), _get_png_tag),
     'svg': (('png', 'svg'), _get_svg_tag),
     }
@@ -134,11 +135,11 @@ def html_visit_plantuml(self, node):
     try:
         format = self.builder.config.plantuml_output_format
         try:
-            fileformats, gettag = _KNOWN_FORMATS[format]
+            fileformats, gettag = _KNOWN_HTML_FORMATS[format]
         except KeyError:
             raise PlantUmlError(
                 'plantuml_output_format must be one of %s, but is %r'
-                % (', '.join(map(repr, _KNOWN_FORMATS)), format))
+                % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), format))
         # fnames: {fileformat: (refname, outfname), ...}
         fnames = dict((e, render_plantuml(self, node, e))
                       for e in fileformats)
@@ -151,9 +152,21 @@ def html_visit_plantuml(self, node):
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
+_KNOWN_LATEX_FORMATS = {
+    'eps': ('eps',),
+    'png': ('png',),
+    }
+
 def latex_visit_plantuml(self, node):
     try:
-        refname, _outfname = render_plantuml(self, node, 'png')
+        format = self.builder.config.plantuml_latex_output_format
+        try:
+            fileformat, = _KNOWN_LATEX_FORMATS[format]
+        except KeyError:
+            raise PlantUmlError(
+                'plantuml_latex_output_format must be one of %s, but is %r'
+                % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), format))
+        refname, _outfname = render_plantuml(self, node, fileformat)
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
@@ -167,3 +180,4 @@ def setup(app):
     app.add_directive('uml', UmlDirective)
     app.add_config_value('plantuml', 'plantuml', 'html')
     app.add_config_value('plantuml_output_format', 'png', 'html')
+    app.add_config_value('plantuml_latex_output_format', 'png', '')

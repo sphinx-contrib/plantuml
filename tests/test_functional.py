@@ -130,3 +130,19 @@ def test_buildlatex_simple():
     content = readfile(files[0]).splitlines()
     assert '-pipe' in content[0]
     assert_equals('Hello', content[1])
+
+@with_runsphinx('latex', plantuml_latex_output_format='eps')
+def test_buildlatex_simple_with_eps():
+    """Generate simple LaTeX with EPS
+
+    .. uml::
+
+       Hello
+    """
+    files = glob.glob(os.path.join(_outdir, 'plantuml-*.eps'))
+    assert len(files) == 1
+    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
+
+    content = readfile(files[0]).splitlines()
+    assert '-teps' in content[0]
+    assert_equals('Hello', content[1])
