@@ -27,7 +27,7 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinxcontrib.plantuml', 'rst2pdf.pdfbuilder']
 
-plantuml = 'java -jar plantuml.jar'.split()
+plantuml = 'java -jar plantuml.jar'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
