@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 long_desc = open('README').read()
 
-requires = ['Sphinx>=0.6']
+requires = ['Sphinx>=1.0']
 
 setup(
     name='sphinxcontrib-plantuml',
