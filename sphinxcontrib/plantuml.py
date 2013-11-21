@@ -197,8 +197,16 @@ def latex_visit_plantuml(self, node):
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
-    self.body.append('\n\\includegraphics{%s}\n' % self.encode(refname))
-    raise nodes.SkipNode
+
+    # put node representing rendered image
+    img_node = nodes.image(uri=refname, **node.attributes)
+    img_node.delattr('uml')
+    if not img_node.hasattr('alt'):
+        img_node['alt'] = node['uml']
+    node.append(img_node)
+
+def latex_depart_plantuml(self, node):
+    pass
 
 def pdf_visit_plantuml(self, node):
     try:
@@ -213,7 +221,7 @@ def pdf_visit_plantuml(self, node):
 def setup(app):
     app.add_node(plantuml,
                  html=(html_visit_plantuml, None),
-                 latex=(latex_visit_plantuml, None))
+                 latex=(latex_visit_plantuml, latex_depart_plantuml))
     app.add_directive('uml', UmlDirective)
     app.add_config_value('plantuml', 'plantuml', 'html')
     app.add_config_value('plantuml_output_format', 'png', 'html')
