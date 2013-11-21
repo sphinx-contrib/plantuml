@@ -37,7 +37,11 @@ class UmlDirective(Directive):
            Alice <- Bob: Hi
     """
     has_content = True
-    option_spec = {'alt': directives.unchanged}
+    option_spec = {'alt': directives.unchanged,
+                   # TODO: process the following options by html writer
+                   'height': directives.length_or_unitless,
+                   'width': directives.length_or_percentage_or_unitless,
+                   'scale': directives.percentage}
 
     def run(self):
         node = plantuml(self.block_text, **self.options)
