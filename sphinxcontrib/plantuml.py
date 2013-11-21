@@ -40,9 +40,8 @@ class UmlDirective(Directive):
     option_spec = {'alt': directives.unchanged}
 
     def run(self):
-        node = plantuml()
+        node = plantuml(self.block_text, **self.options)
         node['uml'] = '\n'.join(self.content)
-        node['alt'] = self.options.get('alt', None)
         return [node]
 
 def generate_name(self, node, fileformat):
@@ -148,7 +147,7 @@ def html_visit_plantuml(self, node):
         raise nodes.SkipNode
 
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
-    self.body.append(gettag(self, fnames, alt=node['alt'] or node['uml']))
+    self.body.append(gettag(self, fnames, alt=node.get('alt', node['uml'])))
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
@@ -208,7 +207,7 @@ def pdf_visit_plantuml(self, node):
     except PlantUmlError, err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
-    rep = nodes.image(uri=outfname, alt=node['alt'] or node['uml'])
+    rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
     node.parent.replace(node, rep)
 
 def setup(app):
