@@ -69,10 +69,10 @@ def test_buildhtml_simple_with_svg():
 
     pngcontent = readfile(pngfiles[0]).splitlines()
     assert '-pipe' in pngcontent[0]
-    assert_equals('Hello', pngcontent[1])
+    assert_equals('Hello', pngcontent[1][2:])
     svgcontent = readfile(svgfiles[0]).splitlines()
     assert '-tsvg' in svgcontent[0]
-    assert_equals('Hello', svgcontent[1])
+    assert_equals('Hello', svgcontent[1][2:])
 
 @with_runsphinx('html')
 def test_buildhtml_samediagram():
@@ -114,7 +114,7 @@ def test_buildhtml_nonascii():
     files = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.png'))
     content = readfile(files[0]).splitlines()
     assert '-charset utf-8' in content[0]
-    assert_equals(u'\u3042', content[1].decode('utf-8'))
+    assert_equals(u'\u3042', content[1][2:].decode('utf-8'))
 
 @with_runsphinx('latex')
 def test_buildlatex_simple():
@@ -130,7 +130,7 @@ def test_buildlatex_simple():
 
     content = readfile(files[0]).splitlines()
     assert '-pipe' in content[0]
-    assert_equals('Hello', content[1])
+    assert_equals('Hello', content[1][2:])
 
 @with_runsphinx('latex', plantuml_latex_output_format='eps')
 def test_buildlatex_simple_with_eps():
@@ -146,7 +146,7 @@ def test_buildlatex_simple_with_eps():
 
     content = readfile(files[0]).splitlines()
     assert '-teps' in content[0]
-    assert_equals('Hello', content[1])
+    assert_equals('Hello', content[1][2:])
 
 @with_runsphinx('latex', plantuml_latex_output_format='pdf')
 def test_buildlatex_simple_with_pdf():
@@ -164,7 +164,7 @@ def test_buildlatex_simple_with_pdf():
 
     epscontent = readfile(epsfiles[0]).splitlines()
     assert '-teps' in epscontent[0]
-    assert_equals('Hello', epscontent[1])
+    assert_equals('Hello', epscontent[1][2:])
     pdfcontent = readfile(pdffiles[0]).splitlines()
     assert os.path.basename(epsfiles[0]) in pdfcontent[0]
 
@@ -183,6 +183,6 @@ def test_buildpdf_simple():
 
     epscontent = readfile(epsfiles[0]).splitlines()
     assert '-teps' in epscontent[0]
-    assert_equals('Hello', epscontent[1])
+    assert_equals('Hello', epscontent[1][2:])
     pdfcontent = readfile(pdffiles[0]).splitlines()
     assert os.path.basename(epsfiles[0]) in pdfcontent[0]
