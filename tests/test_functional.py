@@ -35,7 +35,7 @@ def runsphinx(text, builder, confoverrides):
     app.build()
 
 def with_runsphinx(builder, **kwargs):
-    confoverrides = {'plantuml': _fakecmd, 'plantuml_epstopdf': _fakeepstopdf}
+    confoverrides = {'plantuml': _fakecmd}
     confoverrides.update(kwargs)
     def wrapfunc(func):
         def test():
@@ -165,8 +165,6 @@ def test_buildlatex_simple_with_pdf():
     epscontent = readfile(epsfiles[0]).splitlines()
     assert '-teps' in epscontent[0]
     assert_equals('Hello', epscontent[1][2:])
-    pdfcontent = readfile(pdffiles[0]).splitlines()
-    assert os.path.basename(epsfiles[0]) in pdfcontent[0]
 
 @with_runsphinx('pdf')
 def test_buildpdf_simple():
@@ -184,5 +182,3 @@ def test_buildpdf_simple():
     epscontent = readfile(epsfiles[0]).splitlines()
     assert '-teps' in epscontent[0]
     assert_equals('Hello', epscontent[1][2:])
-    pdfcontent = readfile(pdffiles[0]).splitlines()
-    assert os.path.basename(epsfiles[0]) in pdfcontent[0]
