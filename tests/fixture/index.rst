@@ -4,6 +4,7 @@ PlantUML Example
 Class diagram:
 
 .. uml::
+   :caption: A caption with **bold** text
 
    Foo <|-- Bar
 

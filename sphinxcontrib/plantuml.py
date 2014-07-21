@@ -38,6 +38,7 @@ class UmlDirective(Directive):
     """
     has_content = True
     option_spec = {'alt': directives.unchanged,
+                   'caption': directives.unchanged,
                    # TODO: process the following options by html writer
                    'height': directives.length_or_unitless,
                    'width': directives.length_or_percentage_or_unitless,
@@ -46,6 +47,17 @@ class UmlDirective(Directive):
     def run(self):
         node = plantuml(self.block_text, **self.options)
         node['uml'] = '\n'.join(self.content)
+
+        # if a caption is defined, insert a 'figure' with this node and the caption
+        if 'caption' in self.options:
+            import docutils.statemachine
+            cnode = nodes.Element()          # anonymous container for parsing
+            sl = docutils.statemachine.StringList([self.options['caption']],source='')
+            self.state.nested_parse(sl,self.content_offset, cnode)
+            caption = nodes.caption(self.options['caption'], '', *cnode)
+            fig = nodes.figure('',node)
+            fig += caption
+            node = fig
         return [node]
 
 def generate_name(self, node, fileformat):

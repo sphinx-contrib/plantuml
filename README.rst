@@ -38,6 +38,14 @@ options are only supported by LaTeX builder::
 
        Foo <|-- Bar
 
+You can specify a caption::
+
+    .. uml::
+       :caption: Caption with **bold** and *italic*
+       :width: 50mm
+
+       Foo <|-- Bar
+
 For details, please see PlantUML_ documentation.
 
 .. _PlantUML: http://plantuml.sourceforge.net/

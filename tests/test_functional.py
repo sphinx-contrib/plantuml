@@ -104,6 +104,17 @@ def test_buildhtml_alt():
     assert 'alt="Foo &lt;Bar&gt;"' in readfile('index.html')
 
 @with_runsphinx('html')
+def test_buildhtml_caption():
+    """Generate HTML with caption specified
+
+    .. uml::
+       :caption: Caption with **bold** and *italic*
+
+       Hello
+    """
+    assert 'Caption with <strong>bold</strong> and <em>italic</em>' in readfile('index.html')
+
+@with_runsphinx('html')
 def test_buildhtml_nonascii():
     u"""Generate simple HTML of non-ascii diagram
 
