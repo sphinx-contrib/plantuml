@@ -13,6 +13,8 @@ try:
     from hashlib import sha1
 except ImportError:  # Python<2.5
     from sha import sha as sha1
+import re
+from PIL import Image
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.errors import SphinxError
@@ -39,7 +41,6 @@ class UmlDirective(Directive):
     has_content = True
     option_spec = {'alt': directives.unchanged,
                    'caption': directives.unchanged,
-                   # TODO: process the following options by html writer
                    'height': directives.length_or_unitless,
                    'width': directives.length_or_percentage_or_unitless,
                    'scale': directives.percentage}
@@ -108,10 +109,55 @@ def render_plantuml(self, node, fileformat):
     finally:
         f.close()
 
-def _get_png_tag(self, fnames, alt):
+def _get_png_tag(self, fnames, alt, **attr):
     refname, _outfname = fnames['png']
-    return ('<img src="%s" alt="%s" />\n'
-            % (self.encode(refname), self.encode(alt)))
+
+    # Get sizes from the rendered image (defaults)
+    im = Image.open(_outfname)
+    im.load()
+    (fw, fh) = im.size
+    
+    # Regex to get value and units
+    vu = re.compile(r"(?P<value>\d+)\s*(?P<units>[a-zA-Z%]+)?")
+    
+    # Width
+    if 'width' in attr:
+        m = vu.match(attr['width'])
+        if not m:
+            raise PlantUmlError('Invalid width')
+        else:
+            m = m.groupdict()
+        w = int(m['value'])
+        wu = m['units'] if m['units'] else 'px'
+    else:
+        w = fw
+        wu = 'px'
+    
+    # Height
+    if 'height' in attr:
+        m = vu.match(attr['height'])
+        if not m:
+            raise PlantUmlError('Invalid height')
+        else:
+            m = m.groupdict()
+        h = int(m['value'])
+        hu = m['units'] if m['units'] else 'px'
+    else:
+        h = fh
+        hu = 'px'
+
+    # Scale
+    if 'scale' not in attr:
+        attr['scale'] = 100
+    
+    return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/></a>\n'
+            % (self.encode(refname),
+               self.encode(refname), 
+               self.encode(alt),
+               self.encode(w * attr['scale'] / 100),
+               self.encode(wu),
+               self.encode(h * attr['scale'] / 100),
+               self.encode(hu)))
 
 def _get_svg_style(fname):
     f = open(fname)
@@ -163,7 +209,9 @@ def html_visit_plantuml(self, node):
         raise nodes.SkipNode
 
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
-    self.body.append(gettag(self, fnames, alt=node.get('alt', node['uml'])))
+    self.body.append(gettag(self, fnames, 
+                             alt=node.get('alt', node['uml']),
+                             **node.attributes))
     self.body.append('</p>\n')
     raise nodes.SkipNode
 

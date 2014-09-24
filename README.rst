@@ -30,11 +30,10 @@ Then, write PlantUML text under ``.. uml::`` directive::
        Alice -> Bob: Hi!
        Alice <- Bob: How are you?
 
-You can specify ``height``, ``width`` or ``scale``, but currently these
-options are only supported by LaTeX builder::
+You can specify ``height``, ``width`` or ``scale``::
 
     .. uml::
-       :width: 50mm
+       :scale: 50 %
 
        Foo <|-- Bar
 
