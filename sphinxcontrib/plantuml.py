@@ -111,6 +111,13 @@ def render_plantuml(self, node, fileformat):
 def _get_png_tag(self, fnames, alt, **attr):
     refname, _outfname = fnames['png']
 
+    # mimic StandaloneHTMLBuilder.post_process_images(). maybe we should
+    # process images prior to html_vist.
+    scale_keys = ('scale', 'width', 'height')
+    if all(key not in attr for key in scale_keys):
+        return ('<img src="%s" alt="%s" />\n'
+                % (self.encode(refname), self.encode(alt)))
+
     # Get sizes from the rendered image (defaults)
     im = Image.open(_outfname)
     im.load()
