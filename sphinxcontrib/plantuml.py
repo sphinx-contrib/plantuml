@@ -13,7 +13,6 @@ try:
     from hashlib import sha1
 except ImportError:  # Python<2.5
     from sha import sha as sha1
-import re
 from PIL import Image
 from docutils import nodes
 from docutils.parsers.rst import directives
