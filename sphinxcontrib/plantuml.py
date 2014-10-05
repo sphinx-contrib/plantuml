@@ -13,12 +13,16 @@ try:
     from hashlib import sha1
 except ImportError:  # Python<2.5
     from sha import sha as sha1
-from PIL import Image
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.errors import SphinxError
 from sphinx.util.compat import Directive
 from sphinx.util.osutil import ensuredir, ENOENT
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 class PlantUmlError(SphinxError):
     pass
@@ -115,7 +119,7 @@ def _get_png_tag(self, fnames, node):
     # mimic StandaloneHTMLBuilder.post_process_images(). maybe we should
     # process images prior to html_vist.
     scale_keys = ('scale', 'width', 'height')
-    if all(key not in node for key in scale_keys):
+    if all(key not in node for key in scale_keys) or Image is None:
         return ('<img src="%s" alt="%s" />\n'
                 % (self.encode(refname), self.encode(alt)))
 
