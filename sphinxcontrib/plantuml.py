@@ -108,13 +108,14 @@ def render_plantuml(self, node, fileformat):
     finally:
         f.close()
 
-def _get_png_tag(self, fnames, alt, **attr):
+def _get_png_tag(self, fnames, node):
     refname, _outfname = fnames['png']
+    alt = node.get('alt', node['uml'])
 
     # mimic StandaloneHTMLBuilder.post_process_images(). maybe we should
     # process images prior to html_vist.
     scale_keys = ('scale', 'width', 'height')
-    if all(key not in attr for key in scale_keys):
+    if all(key not in node for key in scale_keys):
         return ('<img src="%s" alt="%s" />\n'
                 % (self.encode(refname), self.encode(alt)))
 
@@ -127,8 +128,8 @@ def _get_png_tag(self, fnames, alt, **attr):
     vu = re.compile(r"(?P<value>\d+)\s*(?P<units>[a-zA-Z%]+)?")
 
     # Width
-    if 'width' in attr:
-        m = vu.match(attr['width'])
+    if 'width' in node:
+        m = vu.match(node['width'])
         if not m:
             raise PlantUmlError('Invalid width')
         else:
@@ -140,8 +141,8 @@ def _get_png_tag(self, fnames, alt, **attr):
         wu = 'px'
 
     # Height
-    if 'height' in attr:
-        m = vu.match(attr['height'])
+    if 'height' in node:
+        m = vu.match(node['height'])
         if not m:
             raise PlantUmlError('Invalid height')
         else:
@@ -153,16 +154,16 @@ def _get_png_tag(self, fnames, alt, **attr):
         hu = 'px'
 
     # Scale
-    if 'scale' not in attr:
-        attr['scale'] = 100
+    if 'scale' not in node:
+        node['scale'] = 100
 
     return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/></a>\n'
             % (self.encode(refname),
                self.encode(refname),
                self.encode(alt),
-               self.encode(w * attr['scale'] / 100),
+               self.encode(w * node['scale'] / 100),
                self.encode(wu),
-               self.encode(h * attr['scale'] / 100),
+               self.encode(h * node['scale'] / 100),
                self.encode(hu)))
 
 def _get_svg_style(fname):
@@ -183,14 +184,14 @@ def _get_svg_style(fname):
         return
     return m.group(1)
 
-def _get_svg_tag(self, fnames, alt):
+def _get_svg_tag(self, fnames, node):
     refname, outfname = fnames['svg']
     return '\n'.join([
         # copy width/height style from <svg> tag, so that <object> area
         # has enough space.
         '<object data="%s" type="image/svg+xml" style="%s">' % (
             self.encode(refname), _get_svg_style(outfname) or ''),
-        _get_png_tag(self, fnames, alt),
+        _get_png_tag(self, fnames, node),
         '</object>'])
 
 _KNOWN_HTML_FORMATS = {
@@ -215,9 +216,7 @@ def html_visit_plantuml(self, node):
         raise nodes.SkipNode
 
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
-    self.body.append(gettag(self, fnames,
-                            alt=node.get('alt', node['uml']),
-                            **node.attributes))
+    self.body.append(gettag(self, fnames, node))
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
