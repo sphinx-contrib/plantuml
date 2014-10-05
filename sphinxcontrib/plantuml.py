@@ -116,10 +116,10 @@ def _get_png_tag(self, fnames, alt, **attr):
     im = Image.open(_outfname)
     im.load()
     (fw, fh) = im.size
-    
+
     # Regex to get value and units
     vu = re.compile(r"(?P<value>\d+)\s*(?P<units>[a-zA-Z%]+)?")
-    
+
     # Width
     if 'width' in attr:
         m = vu.match(attr['width'])
@@ -132,7 +132,7 @@ def _get_png_tag(self, fnames, alt, **attr):
     else:
         w = fw
         wu = 'px'
-    
+
     # Height
     if 'height' in attr:
         m = vu.match(attr['height'])
@@ -149,10 +149,10 @@ def _get_png_tag(self, fnames, alt, **attr):
     # Scale
     if 'scale' not in attr:
         attr['scale'] = 100
-    
+
     return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/></a>\n'
             % (self.encode(refname),
-               self.encode(refname), 
+               self.encode(refname),
                self.encode(alt),
                self.encode(w * attr['scale'] / 100),
                self.encode(wu),
@@ -209,9 +209,9 @@ def html_visit_plantuml(self, node):
         raise nodes.SkipNode
 
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
-    self.body.append(gettag(self, fnames, 
-                             alt=node.get('alt', node['uml']),
-                             **node.attributes))
+    self.body.append(gettag(self, fnames,
+                            alt=node.get('alt', node['uml']),
+                            **node.attributes))
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
