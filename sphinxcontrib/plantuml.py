@@ -52,14 +52,16 @@ class UmlDirective(Directive):
         node = plantuml(self.block_text, **self.options)
         node['uml'] = '\n'.join(self.content)
 
-        # if a caption is defined, insert a 'figure' with this node and the caption
+        # if a caption is defined, insert a 'figure' with this node and
+        # the caption
         if 'caption' in self.options:
             import docutils.statemachine
-            cnode = nodes.Element()          # anonymous container for parsing
-            sl = docutils.statemachine.StringList([self.options['caption']],source='')
-            self.state.nested_parse(sl,self.content_offset, cnode)
+            cnode = nodes.Element()  # anonymous container for parsing
+            sl = docutils.statemachine.StringList([self.options['caption']],
+                                                  source='')
+            self.state.nested_parse(sl, self.content_offset, cnode)
             caption = nodes.caption(self.options['caption'], '', *cnode)
-            fig = nodes.figure('',node)
+            fig = nodes.figure('', node)
             fig += caption
             node = fig
         return [node]
@@ -161,7 +163,8 @@ def _get_png_tag(self, fnames, node):
     if 'scale' not in node:
         node['scale'] = 100
 
-    return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/></a>\n'
+    return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/>'
+            '</a>\n'
             % (self.encode(refname),
                self.encode(refname),
                self.encode(alt),
