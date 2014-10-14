@@ -30,10 +30,11 @@ Then, write PlantUML text under ``.. uml::`` directive::
        Alice -> Bob: Hi!
        Alice <- Bob: How are you?
 
-You can specify ``height``, ``width`` or ``scale``::
+You can specify ``height``, ``width``, ``scale`` and ``align``::
 
     .. uml::
        :scale: 50 %
+       :align: center
 
        Foo <|-- Bar
 
@@ -73,3 +74,9 @@ plantuml_latex_output_format
 
 plantuml_epstopdf
   Path to epstopdf executable. (default: 'epstopdf')
+
+plantuml_skin
+  Path to *global skin* file. Its content will be prepended to each diagram.
+  Example: a file with ``skinparam shadowing false`` will disable shadows to
+  all diagrams in your document.
+

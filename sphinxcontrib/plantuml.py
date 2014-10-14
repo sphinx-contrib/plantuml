@@ -15,6 +15,7 @@ except ImportError:  # Python<2.5
     from sha import sha as sha1
 from docutils import nodes
 from docutils.parsers.rst import directives
+from docutils.parsers.rst.directives.images import Figure
 from sphinx.errors import SphinxError
 from sphinx.util.compat import Directive
 from sphinx.util.osutil import ensuredir, ENOENT
@@ -41,29 +42,35 @@ class UmlDirective(Directive):
            Alice -> Bob: Hello
            Alice <- Bob: Hi
     """
+    def align(argument):
+        return directives.choice(argument, Figure.align_h_values)
+
     has_content = True
     option_spec = {'alt': directives.unchanged,
                    'caption': directives.unchanged,
                    'height': directives.length_or_unitless,
                    'width': directives.length_or_percentage_or_unitless,
-                   'scale': directives.percentage}
+                   'scale': directives.percentage,
+                   'align': align }
 
     def run(self):
         node = plantuml(self.block_text, **self.options)
         node['uml'] = '\n'.join(self.content)
 
-        # if a caption is defined, insert a 'figure' with this node and
-        # the caption
+        # Insert a figure
+        import docutils.statemachine
+        cnode = nodes.Element()  # anonymous container for parsing
         if 'caption' in self.options:
-            import docutils.statemachine
-            cnode = nodes.Element()  # anonymous container for parsing
             sl = docutils.statemachine.StringList([self.options['caption']],
                                                   source='')
             self.state.nested_parse(sl, self.content_offset, cnode)
             caption = nodes.caption(self.options['caption'], '', *cnode)
-            fig = nodes.figure('', node)
-            fig += caption
-            node = fig
+        if 'align' not in self.options:
+            self.options['align'] = 'center'
+        fig = nodes.figure('', node, align=self.options['align'])
+        fig += caption
+        node = fig
+
         return [node]
 
 def generate_name(self, node, fileformat):
@@ -92,6 +99,13 @@ def generate_plantuml_args(self, fileformat):
     return args
 
 def render_plantuml(self, node, fileformat):
+
+    # Load skin content
+    if self.builder.config.plantuml_skin:
+        skin_file = open(self.builder.config.plantuml_skin, 'r')
+        node['uml'] = skin_file.read() + '\n' + node['uml']
+        skin_file.close()
+
     refname, outfname = generate_name(self, node, fileformat)
     if os.path.exists(outfname):
         return refname, outfname  # don't regenerate
@@ -303,6 +317,7 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
+    app.add_config_value('plantuml_skin', None, '')
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
