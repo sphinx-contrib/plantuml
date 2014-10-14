@@ -60,15 +60,16 @@ class UmlDirective(Directive):
         # Insert a figure
         import docutils.statemachine
         cnode = nodes.Element()  # anonymous container for parsing
+        if 'align' not in self.options:
+            self.options['align'] = 'center'
+        fig = nodes.figure('', node, align=self.options['align'])
         if 'caption' in self.options:
             sl = docutils.statemachine.StringList([self.options['caption']],
                                                   source='')
             self.state.nested_parse(sl, self.content_offset, cnode)
             caption = nodes.caption(self.options['caption'], '', *cnode)
-        if 'align' not in self.options:
-            self.options['align'] = 'center'
-        fig = nodes.figure('', node, align=self.options['align'])
-        fig += caption
+            fig += caption
+
         node = fig
 
         return [node]
