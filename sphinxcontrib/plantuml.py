@@ -15,7 +15,6 @@ except ImportError:  # Python<2.5
     from sha import sha as sha1
 from docutils import nodes
 from docutils.parsers.rst import directives
-from docutils.parsers.rst.directives.images import Figure
 from sphinx.errors import SphinxError
 from sphinx.util.compat import Directive
 from sphinx.util.osutil import ensuredir, ENOENT
@@ -31,6 +30,10 @@ class PlantUmlError(SphinxError):
 class plantuml(nodes.General, nodes.Element):
     pass
 
+def align(argument):
+    align_values = ('left', 'center', 'right')
+    return directives.choice(argument, align_values)
+
 class UmlDirective(Directive):
     """Directive to insert PlantUML markup
 
@@ -42,9 +45,6 @@ class UmlDirective(Directive):
            Alice -> Bob: Hello
            Alice <- Bob: Hi
     """
-    def align(argument):
-        return directives.choice(argument, Figure.align_h_values)
-
     has_content = True
     option_spec = {'alt': directives.unchanged,
                    'caption': directives.unchanged,
