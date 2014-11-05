@@ -57,10 +57,10 @@ class UmlDirective(Directive):
         node = plantuml(self.block_text, **self.options)
         node['uml'] = '\n'.join(self.content)
 
-        # Insert a figure
-        if 'align' not in self.options:
-            self.options['align'] = 'center'
-        fig = nodes.figure('', node, align=self.options['align'])
+        # XXX maybe this should be moved to _visit_plantuml functions. it
+        # seems wrong to insert "figure" node by "plantuml" directive.
+        if 'caption' in self.options or 'align' in self.options:
+            node = nodes.figure('', node, align=self.options.get('align'))
         if 'caption' in self.options:
             import docutils.statemachine
             cnode = nodes.Element()  # anonymous container for parsing
@@ -68,9 +68,7 @@ class UmlDirective(Directive):
                                                   source='')
             self.state.nested_parse(sl, self.content_offset, cnode)
             caption = nodes.caption(self.options['caption'], '', *cnode)
-            fig += caption
-
-        node = fig
+            node += caption
 
         return [node]
 
