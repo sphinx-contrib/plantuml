@@ -51,7 +51,8 @@ class UmlDirective(Directive):
                    'height': directives.length_or_unitless,
                    'width': directives.length_or_percentage_or_unitless,
                    'scale': directives.percentage,
-                   'align': align }
+                   'align': align,
+                   }
 
     def run(self):
         node = plantuml(self.block_text, **self.options)
