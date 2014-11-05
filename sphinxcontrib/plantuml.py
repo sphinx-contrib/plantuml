@@ -58,12 +58,12 @@ class UmlDirective(Directive):
         node['uml'] = '\n'.join(self.content)
 
         # Insert a figure
-        import docutils.statemachine
-        cnode = nodes.Element()  # anonymous container for parsing
         if 'align' not in self.options:
             self.options['align'] = 'center'
         fig = nodes.figure('', node, align=self.options['align'])
         if 'caption' in self.options:
+            import docutils.statemachine
+            cnode = nodes.Element()  # anonymous container for parsing
             sl = docutils.statemachine.StringList([self.options['caption']],
                                                   source='')
             self.state.nested_parse(sl, self.content_offset, cnode)
