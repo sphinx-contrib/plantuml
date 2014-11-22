@@ -99,13 +99,6 @@ def generate_plantuml_args(self, fileformat):
     return args
 
 def render_plantuml(self, node, fileformat):
-
-    # Load skin content
-    if self.builder.config.plantuml_skin:
-        skin_file = open(self.builder.config.plantuml_skin, 'r')
-        node['uml'] = skin_file.read() + '\n' + node['uml']
-        skin_file.close()
-
     refname, outfname = generate_name(self, node, fileformat)
     if os.path.exists(outfname):
         return refname, outfname  # don't regenerate
@@ -317,7 +310,6 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
-    app.add_config_value('plantuml_skin', None, '')
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:

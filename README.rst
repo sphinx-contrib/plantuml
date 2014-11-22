@@ -74,8 +74,3 @@ plantuml_latex_output_format
 
 plantuml_epstopdf
   Path to epstopdf executable. (default: 'epstopdf')
-
-plantuml_skin
-  Path to *global skin* file. Its content will be prepended to each diagram.
-  Example: a file with ``skinparam shadowing false`` will disable shadows to
-  all diagrams in your document.
