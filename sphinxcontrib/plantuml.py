@@ -86,10 +86,10 @@ _ARGS_BY_FILEFORMAT = {
     }
 
 def generate_plantuml_args(self, fileformat):
-    if isinstance(self.builder.config.plantuml, basestring):
-        args = shlex.split(self.builder.config.plantuml)
-    else:
+    if isinstance(self.builder.config.plantuml, (tuple, list)):
         args = list(self.builder.config.plantuml)
+    else:
+        args = shlex.split(self.builder.config.plantuml)
     args.extend('-pipe -charset utf-8'.split())
     args.extend(_ARGS_BY_FILEFORMAT[fileformat])
     return args
@@ -231,10 +231,10 @@ def html_visit_plantuml(self, node):
     raise nodes.SkipNode
 
 def _convert_eps_to_pdf(self, refname, fname):
-    if isinstance(self.builder.config.plantuml_epstopdf, basestring):
-        args = shlex.split(self.builder.config.plantuml_epstopdf)
-    else:
+    if isinstance(self.builder.config.plantuml_epstopdf, (tuple, list)):
         args = list(self.builder.config.plantuml_epstopdf)
+    else:
+        args = shlex.split(self.builder.config.plantuml_epstopdf)
     args.append(fname)
     try:
         try:
