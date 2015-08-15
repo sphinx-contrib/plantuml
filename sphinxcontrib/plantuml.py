@@ -112,7 +112,7 @@ def render_plantuml(self, node, fileformat):
                                 % self.builder.config.plantuml)
         serr = p.communicate(node['uml'].encode('utf-8'))[1]
         if p.returncode != 0:
-            raise PlantUmlError('error while running plantuml\n\n' + serr)
+            raise PlantUmlError('error while running plantuml\n\n%s' % serr)
         return refname, outfname
     finally:
         f.close()
