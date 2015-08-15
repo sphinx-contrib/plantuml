@@ -8,11 +8,7 @@
     :copyright: Copyright 2010 by Yuya Nishihara <yuya@tcha.org>.
     :license: BSD, see LICENSE for details.
 """
-import errno, os, re, shlex, subprocess
-try:
-    from hashlib import sha1
-except ImportError:  # Python<2.5
-    from sha import sha as sha1
+import errno, hashlib, os, re, shlex, subprocess
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.errors import SphinxError
@@ -74,7 +70,7 @@ class UmlDirective(Directive):
         return [node]
 
 def generate_name(self, node, fileformat):
-    key = sha1(node['uml'].encode('utf-8')).hexdigest()
+    key = hashlib.sha1(node['uml'].encode('utf-8')).hexdigest()
     fname = 'plantuml-%s.%s' % (key, fileformat)
     imgpath = getattr(self.builder, 'imgpath', None)
     if imgpath:
