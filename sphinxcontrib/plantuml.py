@@ -105,7 +105,7 @@ def render_plantuml(self, node, fileformat):
             p = subprocess.Popen(generate_plantuml_args(self, fileformat),
                                  stdout=f, stdin=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
-        except OSError, err:
+        except OSError as err:
             if err.errno != ENOENT:
                 raise
             raise PlantUmlError('plantuml command %r cannot be run'
@@ -221,7 +221,7 @@ def html_visit_plantuml(self, node):
         # fnames: {fileformat: (refname, outfname), ...}
         fnames = dict((e, render_plantuml(self, node, e))
                       for e in fileformats)
-    except PlantUmlError, err:
+    except PlantUmlError as err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
 
@@ -240,13 +240,13 @@ def _convert_eps_to_pdf(self, refname, fname):
         try:
             p = subprocess.Popen(args, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
-        except OSError, err:
+        except OSError as err:
             # workaround for missing shebang of epstopdf script
             if err.errno != getattr(errno, 'ENOEXEC', 0):
                 raise
             p = subprocess.Popen(['bash'] + args, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
-    except OSError, err:
+    except OSError as err:
         if err.errno != ENOENT:
             raise
         raise PlantUmlError('epstopdf command %r cannot be run'
@@ -273,7 +273,7 @@ def latex_visit_plantuml(self, node):
                 % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), format))
         refname, outfname = render_plantuml(self, node, fileformat)
         refname, outfname = postproc(self, refname, outfname)
-    except PlantUmlError, err:
+    except PlantUmlError as err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
 
@@ -291,7 +291,7 @@ def pdf_visit_plantuml(self, node):
     try:
         refname, outfname = render_plantuml(self, node, 'eps')
         refname, outfname = _convert_eps_to_pdf(self, refname, outfname)
-    except PlantUmlError, err:
+    except PlantUmlError as err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
     rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
