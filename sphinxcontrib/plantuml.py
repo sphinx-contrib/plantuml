@@ -57,7 +57,9 @@ class UmlDirective(Directive):
         # XXX maybe this should be moved to _visit_plantuml functions. it
         # seems wrong to insert "figure" node by "plantuml" directive.
         if 'caption' in self.options or 'align' in self.options:
-            node = nodes.figure('', node, align=self.options.get('align'))
+            node = nodes.figure('', node)
+            if 'align' in self.options:
+                node['align'] = self.options['align']
         if 'caption' in self.options:
             import docutils.statemachine
             cnode = nodes.Element()  # anonymous container for parsing

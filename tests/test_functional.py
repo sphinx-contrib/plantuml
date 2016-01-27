@@ -180,6 +180,32 @@ def test_buildlatex_simple_with_pdf():
     assert '-teps' in epscontent[0]
     assert_equals('Hello', epscontent[1][2:])
 
+@with_runsphinx('latex')
+def test_buildlatex_with_caption():
+    """Generate LaTeX with caption
+
+    .. uml::
+       :caption: Hello UML
+
+       Hello
+    """
+    out = readfile('plantuml_fixture.tex')
+    assert re.search(r'\\caption\{\s*Hello UML\s*\}', out)
+    assert re.search(r'\\begin\{figure\}\[htbp\]', out)
+    assert not re.search(r'\\begin\{flushNone', out)  # issue #136
+
+@with_runsphinx('latex')
+def test_buildlatex_with_align():
+    """Generate LaTeX with caption
+
+    .. uml::
+       :align: right
+
+       Hello
+    """
+    out = readfile('plantuml_fixture.tex')
+    assert re.search(r'\\begin\{figure\}\[htbp\]\\begin\{flushright\}', out)
+
 @with_runsphinx('pdf')
 def test_buildpdf_simple():
     """Generate simple PDF
