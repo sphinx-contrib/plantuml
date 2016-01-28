@@ -1,4 +1,4 @@
-import os, tempfile, shutil, glob
+import os, re, tempfile, shutil, glob
 from sphinx.application import Sphinx
 
 from nose.tools import *
@@ -137,7 +137,8 @@ def test_buildlatex_simple():
     """
     files = glob.glob(os.path.join(_outdir, 'plantuml-*.png'))
     assert len(files) == 1
-    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
+    assert re.search(r'\\includegraphics\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
 
     content = readfile(files[0]).splitlines()
     assert '-pipe' in content[0]
@@ -153,7 +154,8 @@ def test_buildlatex_simple_with_eps():
     """
     files = glob.glob(os.path.join(_outdir, 'plantuml-*.eps'))
     assert len(files) == 1
-    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
+    assert re.search(r'\\includegraphics\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
 
     content = readfile(files[0]).splitlines()
     assert '-teps' in content[0]
@@ -171,7 +173,8 @@ def test_buildlatex_simple_with_pdf():
     pdffiles = glob.glob(os.path.join(_outdir, 'plantuml-*.pdf'))
     assert len(epsfiles) == 1
     assert len(pdffiles) == 1
-    assert r'\includegraphics{plantuml-' in readfile('plantuml_fixture.tex')
+    assert re.search(r'\\includegraphics\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
 
     epscontent = readfile(epsfiles[0]).splitlines()
     assert '-teps' in epscontent[0]
