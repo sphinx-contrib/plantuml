@@ -313,3 +313,5 @@ def setup(app):
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
         from rst2pdf.pdfbuilder import PDFTranslator as translator
         setattr(translator, 'visit_' + plantuml.__name__, pdf_visit_plantuml)
+
+    return {'parallel_read_safe': True}
