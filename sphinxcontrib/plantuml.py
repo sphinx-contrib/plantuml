@@ -85,10 +85,12 @@ class UmlDirective(Directive):
                 return [warning('PlantUML file "%s" cannot be read: %s'
                                 % (fn, err), line=self.lineno)]
         else:
+            relfn = env.doc2path(env.docname, base=None)
             umlcode = '\n'.join(self.content)
 
         node = plantuml(self.block_text, **self.options)
         node['uml'] = umlcode
+        node['incdir'] = os.path.dirname(relfn)
 
         # XXX maybe this should be moved to _visit_plantuml functions. it
         # seems wrong to insert "figure" node by "plantuml" directive.
@@ -115,7 +117,11 @@ def _read_utf8(filename):
         fp.close()
 
 def generate_name(self, node, fileformat):
-    key = hashlib.sha1(node['uml'].encode('utf-8')).hexdigest()
+    h = hashlib.sha1()
+    h.update(node['incdir'])  # may include different file relative to doc
+    h.update('\0')
+    h.update(node['uml'].encode('utf-8'))
+    key = h.hexdigest()
     fname = 'plantuml-%s.%s' % (key, fileformat)
     imgpath = getattr(self.builder, 'imgpath', None)
     if imgpath:
@@ -143,13 +149,15 @@ def render_plantuml(self, node, fileformat):
     refname, outfname = generate_name(self, node, fileformat)
     if os.path.exists(outfname):
         return refname, outfname  # don't regenerate
+    absincdir = os.path.join(self.builder.srcdir, node['incdir'])
     ensuredir(os.path.dirname(outfname))
     f = open(outfname, 'wb')
     try:
         try:
             p = subprocess.Popen(generate_plantuml_args(self, fileformat),
                                  stdout=f, stdin=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+                                 stderr=subprocess.PIPE,
+                                 cwd=absincdir)
         except OSError as err:
             if err.errno != ENOENT:
                 raise
