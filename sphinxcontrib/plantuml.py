@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for details.
 """
 
+import codecs
 import errno
 import hashlib
 import os
@@ -29,6 +30,12 @@ try:
     from PIL import Image
 except ImportError:
     Image = None
+
+try:
+    from sphinx.util.i18n import search_image_for_language
+except ImportError:  # Sphinx < 1.4
+    def search_image_for_language(filename, env):
+        return filename
 
 class PlantUmlError(SphinxError):
     pass
@@ -52,6 +59,8 @@ class UmlDirective(Directive):
            Alice <- Bob: Hi
     """
     has_content = True
+    required_arguments = 0
+    optional_arguments = 1
     option_spec = {'alt': directives.unchanged,
                    'caption': directives.unchanged,
                    'height': directives.length_or_unitless,
@@ -61,8 +70,25 @@ class UmlDirective(Directive):
                    }
 
     def run(self):
+        warning = self.state.document.reporter.warning
+        env = self.state.document.settings.env
+        if self.arguments and self.content:
+            return [warning('uml directive cannot have both content and '
+                            'a filename argument', line=self.lineno)]
+        if self.arguments:
+            fn = search_image_for_language(self.arguments[0], env)
+            relfn, absfn = env.relfn2path(fn)
+            env.note_dependency(relfn)
+            try:
+                umlcode = _read_utf8(absfn)
+            except (IOError, UnicodeDecodeError) as err:
+                return [warning('PlantUML file "%s" cannot be read: %s'
+                                % (fn, err), line=self.lineno)]
+        else:
+            umlcode = '\n'.join(self.content)
+
         node = plantuml(self.block_text, **self.options)
-        node['uml'] = '\n'.join(self.content)
+        node['uml'] = umlcode
 
         # XXX maybe this should be moved to _visit_plantuml functions. it
         # seems wrong to insert "figure" node by "plantuml" directive.
@@ -80,6 +106,13 @@ class UmlDirective(Directive):
             node += caption
 
         return [node]
+
+def _read_utf8(filename):
+    fp = codecs.open(filename, 'rb', 'utf-8')
+    try:
+        return fp.read()
+    finally:
+        fp.close()
 
 def generate_name(self, node, fileformat):
     key = hashlib.sha1(node['uml'].encode('utf-8')).hexdigest()

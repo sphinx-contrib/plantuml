@@ -15,9 +15,6 @@ Sequence diagram:
    Alice -> Bob: Hello!
    Alice <- Bob: Hi!
 
-Sequence diagram in Japanese:
+Sequence diagram in Japanese, read from external file:
 
-.. uml::
-
-   花子 -> 太郎: こんにちは!
-   花子 <- 太郎: うっす!
+.. uml:: seq.ja.uml

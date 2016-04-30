@@ -30,6 +30,10 @@ Then, write PlantUML text under ``.. uml::`` directive::
        Alice -> Bob: Hi!
        Alice <- Bob: How are you?
 
+or specify path to external PlantUML file::
+
+    .. uml:: external.uml
+
 You can specify ``height``, ``width``, ``scale`` and ``align``::
 
     .. uml::
