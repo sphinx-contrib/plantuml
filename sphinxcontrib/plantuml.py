@@ -8,12 +8,22 @@
     :copyright: Copyright 2010 by Yuya Nishihara <yuya@tcha.org>.
     :license: BSD, see LICENSE for details.
 """
-import errno, hashlib, os, re, shlex, subprocess
+
+import errno
+import hashlib
+import os
+import re
+import shlex
+import subprocess
+
 from docutils import nodes
 from docutils.parsers.rst import directives
 from sphinx.errors import SphinxError
 from sphinx.util.compat import Directive
-from sphinx.util.osutil import ensuredir, ENOENT
+from sphinx.util.osutil import (
+    ensuredir,
+    ENOENT,
+)
 
 try:
     from PIL import Image

@@ -1,4 +1,7 @@
-import os, shutil, tempfile
+import os
+import shutil
+import tempfile
+
 from nose.tools import *
 
 from sphinxcontrib import plantuml

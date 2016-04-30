@@ -1,4 +1,9 @@
-import os, re, tempfile, shutil, glob
+import glob
+import os
+import re
+import tempfile
+import shutil
+
 from sphinx.application import Sphinx
 
 from nose.tools import *
