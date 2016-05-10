@@ -52,7 +52,7 @@ def with_runsphinx(builder, **kwargs):
             finally:
                 os.unlink(os.path.join(_srcdir, 'index.rst'))
                 shutil.rmtree(_outdir)
-        test.func_name = func.func_name
+        test.__name__ = func.__name__
         return test
     return wrapfunc
 
