@@ -30,7 +30,7 @@ def readfile(fname):
         f.close()
 
 def runsphinx(text, builder, confoverrides):
-    f = open(os.path.join(_srcdir, 'index.rst'), 'w')
+    f = open(os.path.join(_srcdir, 'index.rst'), 'wb')
     try:
         f.write(text.encode('utf-8'))
     finally:
