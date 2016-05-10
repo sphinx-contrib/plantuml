@@ -118,8 +118,9 @@ def _read_utf8(filename):
 
 def generate_name(self, node, fileformat):
     h = hashlib.sha1()
-    h.update(node['incdir'])  # may include different file relative to doc
-    h.update('\0')
+    # may include different file relative to doc
+    h.update(node['incdir'].encode('utf-8'))
+    h.update(b'\0')
     h.update(node['uml'].encode('utf-8'))
     key = h.hexdigest()
     fname = 'plantuml-%s.%s' % (key, fileformat)
