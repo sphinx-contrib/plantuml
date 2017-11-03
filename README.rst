@@ -52,7 +52,7 @@ You can specify a caption::
 
 For details, please see PlantUML_ documentation.
 
-.. _PlantUML: http://plantuml.sourceforge.net/
+.. _PlantUML: http://plantuml.com/
 
 Configuration
 -------------
