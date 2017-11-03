@@ -143,7 +143,7 @@ def test_buildlatex_simple():
     """
     files = glob.glob(os.path.join(_outdir, 'plantuml-*.png'))
     assert len(files) == 1
-    assert re.search(br'\\includegraphics\{+plantuml-',
+    assert re.search(br'\\(sphinx)?includegraphics\{+plantuml-',
                      readfile('plantuml_fixture.tex'))
 
     content = readfile(files[0]).splitlines()
@@ -160,7 +160,7 @@ def test_buildlatex_simple_with_eps():
     """
     files = glob.glob(os.path.join(_outdir, 'plantuml-*.eps'))
     assert len(files) == 1
-    assert re.search(br'\\includegraphics\{+plantuml-',
+    assert re.search(br'\\(sphinx)?includegraphics\{+plantuml-',
                      readfile('plantuml_fixture.tex'))
 
     content = readfile(files[0]).splitlines()
@@ -179,7 +179,7 @@ def test_buildlatex_simple_with_pdf():
     pdffiles = glob.glob(os.path.join(_outdir, 'plantuml-*.pdf'))
     assert len(epsfiles) == 1
     assert len(pdffiles) == 1
-    assert re.search(br'\\includegraphics\{+plantuml-',
+    assert re.search(br'\\(sphinx)?includegraphics\{+plantuml-',
                      readfile('plantuml_fixture.tex'))
 
     epscontent = readfile(epsfiles[0]).splitlines()
@@ -210,7 +210,8 @@ def test_buildlatex_with_align():
        Hello
     """
     out = readfile('plantuml_fixture.tex')
-    assert re.search(br'\\begin\{figure\}\[htbp\]\\begin\{flushright\}', out)
+    assert (re.search(br'\\begin\{figure\}\[htbp\]\\begin\{flushright\}', out)
+            or re.search(br'\\begin\{wrapfigure\}\{r\}', out))
 
 @with_runsphinx('pdf')
 def test_buildpdf_simple():
