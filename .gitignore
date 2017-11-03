@@ -1,0 +1,5 @@
+*.pyc
+*~
+build/
+dist/
+sphinxcontrib_plantuml.egg-info/
