@@ -19,8 +19,8 @@ import subprocess
 
 from docutils import nodes
 from docutils.parsers.rst import directives
+from docutils.parsers.rst import Directive
 from sphinx.errors import SphinxError
-from sphinx.util.compat import Directive
 from sphinx.util.osutil import (
     ensuredir,
     ENOENT,
