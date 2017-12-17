@@ -91,6 +91,7 @@ class UmlDirective(Directive):
         node = plantuml(self.block_text, **self.options)
         node['uml'] = umlcode
         node['incdir'] = os.path.dirname(relfn)
+        node['filename'] = os.path.split(relfn)[1]
 
         # XXX maybe this should be moved to _visit_plantuml functions. it
         # seems wrong to insert "figure" node by "plantuml" directive.
@@ -137,12 +138,13 @@ _ARGS_BY_FILEFORMAT = {
     'svg': '-tsvg'.split(),
     }
 
-def generate_plantuml_args(self, fileformat):
+def generate_plantuml_args(self, node, fileformat):
     if isinstance(self.builder.config.plantuml, (tuple, list)):
         args = list(self.builder.config.plantuml)
     else:
         args = shlex.split(self.builder.config.plantuml)
     args.extend('-pipe -charset utf-8'.split())
+    args.extend(['-filename', node['filename']])
     args.extend(_ARGS_BY_FILEFORMAT[fileformat])
     return args
 
@@ -155,7 +157,7 @@ def render_plantuml(self, node, fileformat):
     f = open(outfname, 'wb')
     try:
         try:
-            p = subprocess.Popen(generate_plantuml_args(self, fileformat),
+            p = subprocess.Popen(generate_plantuml_args(self, node, fileformat),
                                  stdout=f, stdin=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  cwd=absincdir)
