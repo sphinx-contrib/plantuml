@@ -174,7 +174,7 @@ def render_plantuml(self, node, fileformat):
         f.close()
 
 def _get_png_tag(self, fnames, node):
-    refname, _outfname = fnames['png']
+    refname, outfname = fnames['png']
     alt = node.get('alt', node['uml'])
 
     # mimic StandaloneHTMLBuilder.post_process_images(). maybe we should
@@ -202,7 +202,7 @@ def _get_png_tag(self, fnames, node):
 
     # Add physical size to assist rendering (defaults)
     if not styles:
-        im = Image.open(_outfname)
+        im = Image.open(outfname)
         im.load()
         styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
                       for a, w in zip(['width', 'height'], im.size))
