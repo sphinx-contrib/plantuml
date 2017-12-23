@@ -189,6 +189,7 @@ def _get_png_tag(self, fnames, node):
     im.load()
     (fw, fh) = im.size
     scale = node.get('scale', 100)
+    styles = []
 
     # Regex to get value and units
     vu = re.compile(r"(?P<value>\d+)\s*(?P<units>[a-zA-Z%]+)?")
@@ -205,6 +206,7 @@ def _get_png_tag(self, fnames, node):
     else:
         w = fw
         wu = 'px'
+    styles.append('width: %s%s' % (w * scale / 100, wu))
 
     # Height
     if 'height' in node:
@@ -218,16 +220,14 @@ def _get_png_tag(self, fnames, node):
     else:
         h = fh
         hu = 'px'
+    styles.append('height: %s%s' % (h * scale / 100, hu))
 
-    return ('<a href="%s"><img src="%s" alt="%s" width="%s%s" height="%s%s"/>'
+    return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
             '</a>\n'
             % (self.encode(refname),
                self.encode(refname),
                self.encode(alt),
-               self.encode(w * scale / 100),
-               self.encode(wu),
-               self.encode(h * scale / 100),
-               self.encode(hu)))
+               self.encode('; '.join(styles))))
 
 def _get_svg_style(fname):
     f = open(fname)
