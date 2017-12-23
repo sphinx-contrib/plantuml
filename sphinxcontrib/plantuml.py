@@ -184,43 +184,28 @@ def _get_png_tag(self, fnames, node):
         return ('<img src="%s" alt="%s" />\n'
                 % (self.encode(refname), self.encode(alt)))
 
-    # Get sizes from the rendered image (defaults)
-    im = Image.open(_outfname)
-    im.load()
-    (fw, fh) = im.size
     scale = node.get('scale', 100)
     styles = []
 
-    # Regex to get value and units
+    # Width/Height
     vu = re.compile(r"(?P<value>\d+)\s*(?P<units>[a-zA-Z%]+)?")
-
-    # Width
-    if 'width' in node:
-        m = vu.match(node['width'])
+    for a in ['width', 'height']:
+        if a not in node:
+            continue
+        m = vu.match(node[a])
         if not m:
-            raise PlantUmlError('Invalid width')
-        else:
-            m = m.groupdict()
+            raise PlantUmlError('Invalid %s' % a)
+        m = m.groupdict()
         w = int(m['value'])
         wu = m['units'] if m['units'] else 'px'
-    else:
-        w = fw
-        wu = 'px'
-    styles.append('width: %s%s' % (w * scale / 100, wu))
+        styles.append('%s: %s%s' % (a, w * scale / 100, wu))
 
-    # Height
-    if 'height' in node:
-        m = vu.match(node['height'])
-        if not m:
-            raise PlantUmlError('Invalid height')
-        else:
-            m = m.groupdict()
-        h = int(m['value'])
-        hu = m['units'] if m['units'] else 'px'
-    else:
-        h = fh
-        hu = 'px'
-    styles.append('height: %s%s' % (h * scale / 100, hu))
+    # Add physical size to assist rendering (defaults)
+    if not styles:
+        im = Image.open(_outfname)
+        im.load()
+        styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
+                      for a, w in zip(['width', 'height'], im.size))
 
     return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
             '</a>\n'
