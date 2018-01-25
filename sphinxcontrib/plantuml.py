@@ -325,6 +325,12 @@ def latex_visit_plantuml(self, node):
 def latex_depart_plantuml(self, node):
     pass
 
+def text_visit_plantuml(self, node):
+    self.new_state()
+    self.add_text(node['uml'])
+    self.end_state()
+    raise nodes.SkipNode
+
 def pdf_visit_plantuml(self, node):
     try:
         refname, outfname = render_plantuml(self, node, 'eps')
@@ -338,7 +344,8 @@ def pdf_visit_plantuml(self, node):
 def setup(app):
     app.add_node(plantuml,
                  html=(html_visit_plantuml, None),
-                 latex=(latex_visit_plantuml, latex_depart_plantuml))
+                 latex=(latex_visit_plantuml, latex_depart_plantuml),
+                 text=(text_visit_plantuml, None))
     app.add_directive('uml', UmlDirective)
     app.add_config_value('plantuml', 'plantuml', 'html')
     app.add_config_value('plantuml_output_format', 'png', 'html')
