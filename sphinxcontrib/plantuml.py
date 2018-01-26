@@ -366,9 +366,15 @@ def pdf_visit_plantuml(self, node):
     rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
     node.parent.replace(node, rep)
 
+def unsupported_visit_plantuml(self, node):
+    self.builder.warn('plantuml: unsupported output format (node skipped)')
+    raise nodes.SkipNode
+
 _NODE_VISITORS = {
     'html': (html_visit_plantuml, None),
     'latex': (latex_visit_plantuml, latex_depart_plantuml),
+    'man': (unsupported_visit_plantuml, None),  # TODO
+    'texinfo': (unsupported_visit_plantuml, None),  # TODO
     'text': (text_visit_plantuml, None),
 }
 
