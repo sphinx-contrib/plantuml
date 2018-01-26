@@ -133,17 +133,17 @@ def generate_name(self, node, fileformat):
         return fname, os.path.join(self.builder.outdir, fname)
 
 _ARGS_BY_FILEFORMAT = {
-    'eps': '-teps'.split(),
-    'png': (),
-    'svg': '-tsvg'.split(),
-    }
+    'eps': ['-teps'],
+    'png': [],
+    'svg': ['-tsvg'],
+}
 
 def generate_plantuml_args(self, node, fileformat):
     if isinstance(self.builder.config.plantuml, (tuple, list)):
         args = list(self.builder.config.plantuml)
     else:
         args = shlex.split(self.builder.config.plantuml)
-    args.extend('-pipe -charset utf-8'.split())
+    args.extend(['-pipe', '-charset', 'utf-8'])
     args.extend(['-filename', node['filename']])
     args.extend(_ARGS_BY_FILEFORMAT[fileformat])
     return args
