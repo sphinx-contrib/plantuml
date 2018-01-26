@@ -136,7 +136,7 @@ def _split_cmdargs(args):
     if isinstance(args, (tuple, list)):
         return list(args)
     else:
-        return shlex.split(args)
+        return shlex.split(args, posix=(os.name != 'nt'))
 
 _ARGS_BY_FILEFORMAT = {
     'eps': ['-teps'],
