@@ -136,6 +136,7 @@ _ARGS_BY_FILEFORMAT = {
     'eps': ['-teps'],
     'png': [],
     'svg': ['-tsvg'],
+    'txt': ['-ttxt'],
 }
 
 def generate_plantuml_args(self, node, fileformat):
@@ -172,6 +173,24 @@ def render_plantuml(self, node, fileformat):
         return refname, outfname
     finally:
         f.close()
+
+def render_plantuml_inline(self, node, fileformat):
+    absincdir = os.path.join(self.builder.srcdir, node['incdir'])
+    try:
+        p = subprocess.Popen(generate_plantuml_args(self, node, fileformat),
+                             stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             cwd=absincdir)
+    except OSError as err:
+        if err.errno != ENOENT:
+            raise
+        raise PlantUmlError('plantuml command %r cannot be run'
+                            % self.builder.config.plantuml)
+    sout, serr = p.communicate(node['uml'].encode('utf-8'))
+    if p.returncode != 0:
+        raise PlantUmlError('error while running plantuml\n\n%s' % serr)
+    return sout.decode('utf-8')
 
 def _get_png_tag(self, fnames, node):
     refname, outfname = fnames['png']
@@ -326,8 +345,14 @@ def latex_depart_plantuml(self, node):
     pass
 
 def text_visit_plantuml(self, node):
+    try:
+        text = render_plantuml_inline(self, node, 'txt')
+    except PlantUmlError as err:
+        self.builder.warn(str(err))
+        text = node['uml']  # fall back to uml text, which is still readable
+
     self.new_state()
-    self.add_text(node['uml'])
+    self.add_text(text)
     self.end_state()
     raise nodes.SkipNode
 
