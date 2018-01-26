@@ -366,11 +366,14 @@ def pdf_visit_plantuml(self, node):
     rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
     node.parent.replace(node, rep)
 
+_NODE_VISITORS = {
+    'html': (html_visit_plantuml, None),
+    'latex': (latex_visit_plantuml, latex_depart_plantuml),
+    'text': (text_visit_plantuml, None),
+}
+
 def setup(app):
-    app.add_node(plantuml,
-                 html=(html_visit_plantuml, None),
-                 latex=(latex_visit_plantuml, latex_depart_plantuml),
-                 text=(text_visit_plantuml, None))
+    app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
     app.add_config_value('plantuml', 'plantuml', 'html')
     app.add_config_value('plantuml_output_format', 'png', 'html')
