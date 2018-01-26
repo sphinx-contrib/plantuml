@@ -132,6 +132,12 @@ def generate_name(self, node, fileformat):
     else:
         return fname, os.path.join(self.builder.outdir, fname)
 
+def _split_cmdargs(args):
+    if isinstance(args, (tuple, list)):
+        return list(args)
+    else:
+        return shlex.split(args)
+
 _ARGS_BY_FILEFORMAT = {
     'eps': ['-teps'],
     'png': [],
@@ -140,10 +146,7 @@ _ARGS_BY_FILEFORMAT = {
 }
 
 def generate_plantuml_args(self, node, fileformat):
-    if isinstance(self.builder.config.plantuml, (tuple, list)):
-        args = list(self.builder.config.plantuml)
-    else:
-        args = shlex.split(self.builder.config.plantuml)
+    args = _split_cmdargs(self.builder.config.plantuml)
     args.extend(['-pipe', '-charset', 'utf-8'])
     args.extend(['-filename', node['filename']])
     args.extend(_ARGS_BY_FILEFORMAT[fileformat])
@@ -288,10 +291,7 @@ def html_visit_plantuml(self, node):
     raise nodes.SkipNode
 
 def _convert_eps_to_pdf(self, refname, fname):
-    if isinstance(self.builder.config.plantuml_epstopdf, (tuple, list)):
-        args = list(self.builder.config.plantuml_epstopdf)
-    else:
-        args = shlex.split(self.builder.config.plantuml_epstopdf)
+    args = _split_cmdargs(self.builder.config.plantuml_epstopdf)
     args.append(fname)
     try:
         try:
