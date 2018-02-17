@@ -65,6 +65,7 @@ plantuml_output_format
 
   :png: generate only .png
   :svg: generate .svg and .png as a fallback
+  :none: do not generate any images (ignore uml directive)
 
 plantuml_latex_output_format
   Type of output image for LaTeX renderer. (default: 'png')
@@ -72,6 +73,7 @@ plantuml_latex_output_format
   :eps: generate .eps (not supported by `pdflatex`)
   :pdf: generate .eps and convert it to .pdf (requires `epstopdf`)
   :png: generate .png
+  :none: do not generate any images (ignore uml directive)
 
   Because embedded png looks pretty bad, it is recommended to choose `pdf`
   for `pdflatex` or `eps` for `platex`.

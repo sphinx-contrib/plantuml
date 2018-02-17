@@ -79,6 +79,16 @@ def test_buildhtml_simple_with_svg():
     assert b'-tsvg' in svgcontent[0]
     assert_equals(b'Hello', svgcontent[1][2:])
 
+@with_runsphinx('html', plantuml_output_format='none')
+def test_buildhtml_no_output():
+    """Generate simple HTML with uml directive disabled
+
+    .. uml::
+
+       Hello
+    """
+    assert '<img ' not in readfile('index.html')
+
 @with_runsphinx('html')
 def test_buildhtml_samediagram():
     """Same diagram should be same file
@@ -185,6 +195,17 @@ def test_buildlatex_simple_with_pdf():
     epscontent = readfile(epsfiles[0]).splitlines()
     assert b'-teps' in epscontent[0]
     assert_equals(b'Hello', epscontent[1][2:])
+
+@with_runsphinx('latex', plantuml_latex_output_format='none')
+def test_buildlatex_no_output():
+    """Generate simple LaTeX with uml directive disabled
+
+    .. uml::
+
+       Hello
+    """
+    assert not re.search(br'\\(sphinx)?includegraphics\{+plantuml-',
+                         readfile('plantuml_fixture.tex'))
 
 @with_runsphinx('latex')
 def test_buildlatex_with_caption():

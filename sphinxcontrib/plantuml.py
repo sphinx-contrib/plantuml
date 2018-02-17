@@ -271,6 +271,8 @@ _KNOWN_HTML_FORMATS = {
 
 def html_visit_plantuml(self, node):
     fmt = self.builder.config.plantuml_output_format
+    if fmt == 'none':
+        raise nodes.SkipNode
     try:
         try:
             fileformats, gettag = _KNOWN_HTML_FORMATS[fmt]
@@ -321,6 +323,8 @@ _KNOWN_LATEX_FORMATS = {
 
 def latex_visit_plantuml(self, node):
     fmt = self.builder.config.plantuml_latex_output_format
+    if fmt == 'none':
+        raise nodes.SkipNode
     try:
         try:
             fileformat, postproc = _KNOWN_LATEX_FORMATS[fmt]
