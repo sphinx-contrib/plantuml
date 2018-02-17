@@ -270,14 +270,14 @@ _KNOWN_HTML_FORMATS = {
     }
 
 def html_visit_plantuml(self, node):
+    fmt = self.builder.config.plantuml_output_format
     try:
-        format = self.builder.config.plantuml_output_format
         try:
-            fileformats, gettag = _KNOWN_HTML_FORMATS[format]
+            fileformats, gettag = _KNOWN_HTML_FORMATS[fmt]
         except KeyError:
             raise PlantUmlError(
                 'plantuml_output_format must be one of %s, but is %r'
-                % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), format))
+                % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
         # fnames: {fileformat: (refname, outfname), ...}
         fnames = dict((e, render_plantuml(self, node, e))
                       for e in fileformats)
@@ -320,14 +320,14 @@ _KNOWN_LATEX_FORMATS = {
     }
 
 def latex_visit_plantuml(self, node):
+    fmt = self.builder.config.plantuml_latex_output_format
     try:
-        format = self.builder.config.plantuml_latex_output_format
         try:
-            fileformat, postproc = _KNOWN_LATEX_FORMATS[format]
+            fileformat, postproc = _KNOWN_LATEX_FORMATS[fmt]
         except KeyError:
             raise PlantUmlError(
                 'plantuml_latex_output_format must be one of %s, but is %r'
-                % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), format))
+                % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), fmt))
         refname, outfname = render_plantuml(self, node, fileformat)
         refname, outfname = postproc(self, refname, outfname)
     except PlantUmlError as err:
