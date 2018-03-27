@@ -132,11 +132,18 @@ def generate_name(self, node, fileformat):
     else:
         return fname, os.path.join(self.builder.outdir, fname)
 
+def _ntunquote(s):
+    if s.startswith('"') and s.endswith('"'):
+        return s[1:-1]
+    return s
+
 def _split_cmdargs(args):
     if isinstance(args, (tuple, list)):
         return list(args)
+    if os.name == 'nt':
+        return list(map(_ntunquote, shlex.split(args, posix=False)))
     else:
-        return shlex.split(args, posix=(os.name != 'nt'))
+        return shlex.split(args, posix=True)
 
 _ARGS_BY_FILEFORMAT = {
     'eps': ['-teps'],
