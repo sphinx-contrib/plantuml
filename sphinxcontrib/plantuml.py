@@ -63,6 +63,7 @@ class UmlDirective(Directive):
     optional_arguments = 1
     option_spec = {'alt': directives.unchanged,
                    'caption': directives.unchanged,
+                   'imgbasename': directives.unchanged,
                    'height': directives.length_or_unitless,
                    'width': directives.length_or_percentage_or_unitless,
                    'scale': directives.percentage,
@@ -108,6 +109,9 @@ class UmlDirective(Directive):
             caption = nodes.caption(self.options['caption'], '', *cnode)
             node += caption
 
+        if 'imgbasename' in self.options:
+            node['imgbasename'] = self.options['imgbasename']
+
         return [node]
 
 def _read_utf8(filename):
@@ -118,13 +122,19 @@ def _read_utf8(filename):
         fp.close()
 
 def generate_name(self, node, fileformat):
-    h = hashlib.sha1()
-    # may include different file relative to doc
-    h.update(node['incdir'].encode('utf-8'))
-    h.update(b'\0')
-    h.update(node['uml'].encode('utf-8'))
-    key = h.hexdigest()
-    fname = 'plantuml-%s.%s' % (key, fileformat)
+    imgbasename = node.get('imgbasename', None)
+
+    if imgbasename is None:
+        h = hashlib.sha1()
+        # may include different file relative to doc
+        h.update(node['incdir'].encode('utf-8'))
+        h.update(b'\0')
+        h.update(node['uml'].encode('utf-8'))
+        key = h.hexdigest()
+        fname = 'plantuml-%s.%s' % (key, fileformat)
+    else:
+        fname = 'plantuml-%s.%s' % (imgbasename, fileformat)
+
     imgpath = getattr(self.builder, 'imgpath', None)
     if imgpath:
         return ('/'.join((self.builder.imgpath, fname)),
@@ -161,7 +171,8 @@ def generate_plantuml_args(self, node, fileformat):
 
 def render_plantuml(self, node, fileformat):
     refname, outfname = generate_name(self, node, fileformat)
-    if os.path.exists(outfname):
+    if (not self.builder.config.plantuml_overwrite_output) and \
+       os.path.exists(outfname):
         return refname, outfname  # don't regenerate
     absincdir = os.path.join(self.builder.srcdir, node['incdir'])
     ensuredir(os.path.dirname(outfname))
@@ -396,6 +407,7 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
+    app.add_config_value('plantuml_overwrite_output', True, 'html')
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
