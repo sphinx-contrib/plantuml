@@ -37,15 +37,19 @@ except ImportError:  # Sphinx < 1.4
     def search_image_for_language(filename, env):
         return filename
 
+
 class PlantUmlError(SphinxError):
     pass
+
 
 class plantuml(nodes.General, nodes.Element):
     pass
 
+
 def align(argument):
     align_values = ('left', 'center', 'right')
     return directives.choice(argument, align_values)
+
 
 class UmlDirective(Directive):
     """Directive to insert PlantUML markup
@@ -110,12 +114,14 @@ class UmlDirective(Directive):
 
         return [node]
 
+
 def _read_utf8(filename):
     fp = codecs.open(filename, 'rb', 'utf-8')
     try:
         return fp.read()
     finally:
         fp.close()
+
 
 def generate_name(self, node, fileformat):
     h = hashlib.sha1()
@@ -132,10 +138,12 @@ def generate_name(self, node, fileformat):
     else:
         return fname, os.path.join(self.builder.outdir, fname)
 
+
 def _ntunquote(s):
     if s.startswith('"') and s.endswith('"'):
         return s[1:-1]
     return s
+
 
 def _split_cmdargs(args):
     if isinstance(args, (tuple, list)):
@@ -145,6 +153,7 @@ def _split_cmdargs(args):
     else:
         return shlex.split(args, posix=True)
 
+
 _ARGS_BY_FILEFORMAT = {
     'eps': ['-teps'],
     'png': [],
@@ -152,12 +161,14 @@ _ARGS_BY_FILEFORMAT = {
     'txt': ['-ttxt'],
 }
 
+
 def generate_plantuml_args(self, node, fileformat):
     args = _split_cmdargs(self.builder.config.plantuml)
     args.extend(['-pipe', '-charset', 'utf-8'])
     args.extend(['-filename', node['filename']])
     args.extend(_ARGS_BY_FILEFORMAT[fileformat])
     return args
+
 
 def render_plantuml(self, node, fileformat):
     refname, outfname = generate_name(self, node, fileformat)
@@ -168,7 +179,8 @@ def render_plantuml(self, node, fileformat):
     f = open(outfname, 'wb')
     try:
         try:
-            p = subprocess.Popen(generate_plantuml_args(self, node, fileformat),
+            p = subprocess.Popen(generate_plantuml_args(self, node,
+                                                        fileformat),
                                  stdout=f, stdin=subprocess.PIPE,
                                  stderr=subprocess.PIPE,
                                  cwd=absincdir)
@@ -183,6 +195,7 @@ def render_plantuml(self, node, fileformat):
         return refname, outfname
     finally:
         f.close()
+
 
 def render_plantuml_inline(self, node, fileformat):
     absincdir = os.path.join(self.builder.srcdir, node['incdir'])
@@ -201,6 +214,7 @@ def render_plantuml_inline(self, node, fileformat):
     if p.returncode != 0:
         raise PlantUmlError('error while running plantuml\n\n%s' % serr)
     return sout.decode('utf-8')
+
 
 def _get_png_tag(self, fnames, node):
     refname, outfname = fnames['png']
@@ -247,6 +261,7 @@ def _get_png_tag(self, fnames, node):
                self.encode(alt),
                self.encode('; '.join(styles))))
 
+
 def _get_svg_style(fname):
     f = codecs.open(fname, 'r', 'utf-8')
     try:
@@ -265,6 +280,7 @@ def _get_svg_style(fname):
         return
     return m.group(1)
 
+
 def _get_svg_tag(self, fnames, node):
     refname, outfname = fnames['svg']
     return '\n'.join([
@@ -275,10 +291,12 @@ def _get_svg_tag(self, fnames, node):
         _get_png_tag(self, fnames, node),
         '</object>'])
 
+
 _KNOWN_HTML_FORMATS = {
     'png': (('png',), _get_png_tag),
     'svg': (('png', 'svg'), _get_svg_tag),
     }
+
 
 def html_visit_plantuml(self, node):
     fmt = self.builder.config.plantuml_output_format
@@ -303,6 +321,7 @@ def html_visit_plantuml(self, node):
     self.body.append('</p>\n')
     raise nodes.SkipNode
 
+
 def _convert_eps_to_pdf(self, refname, fname):
     args = _split_cmdargs(self.builder.config.plantuml_epstopdf)
     args.append(fname)
@@ -326,11 +345,13 @@ def _convert_eps_to_pdf(self, refname, fname):
         raise PlantUmlError('error while running epstopdf\n\n' + serr)
     return refname[:-4] + '.pdf', fname[:-4] + '.pdf'
 
+
 _KNOWN_LATEX_FORMATS = {
     'eps': ('eps', lambda self, refname, fname: (refname, fname)),
     'pdf': ('eps', _convert_eps_to_pdf),
     'png': ('png', lambda self, refname, fname: (refname, fname)),
     }
+
 
 def latex_visit_plantuml(self, node):
     fmt = self.builder.config.plantuml_latex_output_format
@@ -356,8 +377,10 @@ def latex_visit_plantuml(self, node):
         img_node['alt'] = node['uml']
     node.append(img_node)
 
+
 def latex_depart_plantuml(self, node):
     pass
+
 
 def text_visit_plantuml(self, node):
     try:
@@ -371,6 +394,7 @@ def text_visit_plantuml(self, node):
     self.end_state()
     raise nodes.SkipNode
 
+
 def pdf_visit_plantuml(self, node):
     try:
         refname, outfname = render_plantuml(self, node, 'eps')
@@ -381,9 +405,11 @@ def pdf_visit_plantuml(self, node):
     rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
     node.parent.replace(node, rep)
 
+
 def unsupported_visit_plantuml(self, node):
     self.builder.warn('plantuml: unsupported output format (node skipped)')
     raise nodes.SkipNode
+
 
 _NODE_VISITORS = {
     'html': (html_visit_plantuml, None),
@@ -392,6 +418,7 @@ _NODE_VISITORS = {
     'texinfo': (unsupported_visit_plantuml, None),  # TODO
     'text': (text_visit_plantuml, None),
 }
+
 
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
