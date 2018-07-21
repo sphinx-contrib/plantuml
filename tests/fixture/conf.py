@@ -25,7 +25,13 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinxcontrib.plantuml', 'rst2pdf.pdfbuilder']
+extensions = ['sphinxcontrib.plantuml']
+try:
+    import rst2pdf
+    rst2pdf.__file__
+    extensions.append('rst2pdf.pdfbuilder')
+except ImportError:
+    pass
 
 plantuml = 'plantuml'
 

@@ -1,4 +1,5 @@
 import glob
+import nose
 import os
 import re
 import tempfile
@@ -45,6 +46,12 @@ def with_runsphinx(builder, **kwargs):
     confoverrides.update(kwargs)
     def wrapfunc(func):
         def test():
+            if builder == 'pdf':
+                try:
+                    import rst2pdf
+                    rst2pdf.__file__
+                except ImportError:
+                    raise nose.SkipTest
             src = '\n'.join(l[4:] for l in func.__doc__.splitlines()[2:])
             os.mkdir(_outdir)
             try:
