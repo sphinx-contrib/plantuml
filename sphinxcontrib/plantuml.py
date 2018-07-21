@@ -244,7 +244,7 @@ def _get_png_tag(self, fnames, node):
                self.encode('; '.join(styles))))
 
 def _get_svg_style(fname):
-    f = open(fname)
+    f = codecs.open(fname, 'r', 'utf-8')
     try:
         for l in f:
             m = re.search(r'<svg\b([^<>]+)', l)
