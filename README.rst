@@ -63,10 +63,15 @@ plantuml
 plantuml_output_format
   Type of output image for HTML renderer. (default: 'png')
 
-  :png: generate only .png
-  :svg: generate .svg and .png as a fallback
+  :png: generate only .png inside </img>
+  :svg: generate .svg inside <object/> with .png inside </img> as a fallback
   :svg_img: generate only .svg inside <img/> (`browser support <svg_img_>`_)
+  :svg_obj: generate only .svg inside <object/> (`browser support <svg_obj_>`_)
   :none: do not generate any images (ignore uml directive)
+
+  When svg is inside <object/> it will always render full size, possibly bigger
+  than the container. When svg is inside <img/> it will respect container size
+  and scale if necessary.
 
 plantuml_latex_output_format
   Type of output image for LaTeX renderer. (default: 'png')
@@ -83,3 +88,4 @@ plantuml_epstopdf
   Path to epstopdf executable. (default: 'epstopdf')
 
 .. _svg_img: https://caniuse.com/svg-img
+.. _svg_obj: https://caniuse.com/svg

@@ -299,10 +299,19 @@ def _get_svg_img_tag(self, fnames, node):
             % (self.encode(refname), self.encode(alt)))
 
 
+def _get_svg_obj_tag(self, fnames, node):
+    refname, outfname = fnames['svg']
+    # copy width/height style from <svg> tag, so that <object> area
+    # has enough space.
+    return ('<object data="%s" type="image/svg+xml" style="%s"></object>'
+            % (self.encode(refname), _get_svg_style(outfname) or ''))
+
+
 _KNOWN_HTML_FORMATS = {
     'png': (('png',), _get_png_tag),
     'svg': (('png', 'svg'), _get_svg_tag),
     'svg_img': (('svg',), _get_svg_img_tag),
+    'svg_obj': (('svg',), _get_svg_obj_tag),
     }
 
 
