@@ -3,6 +3,7 @@ import os
 import re
 import tempfile
 import shutil
+import sys
 
 from sphinx.application import Sphinx
 
@@ -36,7 +37,7 @@ def runsphinx(text, builder, confoverrides):
     finally:
         f.close()
     app = Sphinx(_srcdir, _fixturedir, _outdir, _outdir, builder,
-                 confoverrides)
+                 confoverrides, status=sys.stdout, warning=sys.stdout)
     app.build()
 
 def with_runsphinx(builder, **kwargs):
