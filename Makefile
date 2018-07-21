@@ -9,6 +9,10 @@ dist:
 upload: dist
 	$(TWINE) upload dist/*
 
+.PHONY: check
+check:
+	$(PYTHON) `which nosetests`
+
 .PHONY: clean
 clean:
 	$(PYTHON) setup.py clean
