@@ -208,8 +208,12 @@ def _get_png_tag(self, fnames, node):
 
     # mimic StandaloneHTMLBuilder.post_process_images(). maybe we should
     # process images prior to html_vist.
-    scale_keys = ('scale', 'width', 'height')
-    if all(key not in node for key in scale_keys) or Image is None:
+    scale_attrs = [k for k in ('scale', 'width', 'height') if k in node]
+    if scale_attrs and Image is None:
+        self.builder.warn('plantuml: unsupported scaling attributes: %s '
+                          '(install PIL or Pillow)'
+                          % ', '.join(scale_attrs))
+    if not scale_attrs or Image is None:
         return ('<img src="%s" alt="%s" />\n'
                 % (self.encode(refname), self.encode(alt)))
 
