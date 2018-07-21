@@ -95,7 +95,7 @@ def test_buildhtml_no_output():
 
        Hello
     """
-    assert '<img ' not in readfile('index.html')
+    assert b'<img ' not in readfile('index.html')
 
 @with_runsphinx('html')
 def test_buildhtml_samediagram():
