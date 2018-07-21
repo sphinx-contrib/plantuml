@@ -65,6 +65,7 @@ plantuml_output_format
 
   :png: generate only .png
   :svg: generate .svg and .png as a fallback
+  :svg_img: generate only .svg inside <img/> (`browser support <svg_img_>`_)
   :none: do not generate any images (ignore uml directive)
 
 plantuml_latex_output_format
@@ -80,3 +81,5 @@ plantuml_latex_output_format
 
 plantuml_epstopdf
   Path to epstopdf executable. (default: 'epstopdf')
+
+.. _svg_img: https://caniuse.com/svg-img

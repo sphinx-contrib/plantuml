@@ -292,9 +292,17 @@ def _get_svg_tag(self, fnames, node):
         '</object>'])
 
 
+def _get_svg_img_tag(self, fnames, node):
+    refname, outfname = fnames['svg']
+    alt = node.get('alt', node['uml'])
+    return ('<img src="%s" alt="%s"/>'
+            % (self.encode(refname), self.encode(alt)))
+
+
 _KNOWN_HTML_FORMATS = {
     'png': (('png',), _get_png_tag),
     'svg': (('png', 'svg'), _get_svg_tag),
+    'svg_img': (('svg',), _get_svg_img_tag),
     }
 
 
