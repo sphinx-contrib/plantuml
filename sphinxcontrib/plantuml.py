@@ -228,7 +228,7 @@ def _get_png_tag(self, fnames, node):
                           '(install PIL or Pillow)'
                           % ', '.join(scale_attrs))
     if not scale_attrs or Image is None:
-        return ('<img src="%s" alt="%s" />\n'
+        return ('<img src="%s" alt="%s"/>\n'
                 % (self.encode(refname), self.encode(alt)))
 
     scale = node.get('scale', 100)
