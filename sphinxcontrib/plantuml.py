@@ -51,6 +51,16 @@ def align(argument):
     return directives.choice(argument, align_values)
 
 
+def html_format(argument):
+    format_values = list(_KNOWN_HTML_FORMATS.keys())
+    return directives.choice(argument, format_values)
+
+
+def latex_format(argument):
+    format_values = list(_KNOWN_LATEX_FORMATS.keys())
+    return directives.choice(argument, format_values)
+
+
 class UmlDirective(Directive):
     """Directive to insert PlantUML markup
 
@@ -71,6 +81,8 @@ class UmlDirective(Directive):
                    'width': directives.length_or_percentage_or_unitless,
                    'scale': directives.percentage,
                    'align': align,
+                   'html_format': html_format,
+                   'latex_format': latex_format,
                    }
 
     def run(self):
@@ -111,6 +123,10 @@ class UmlDirective(Directive):
             self.state.nested_parse(sl, self.content_offset, cnode)
             caption = nodes.caption(self.options['caption'], '', *cnode)
             node += caption
+        if 'html_format' in self.options:
+            node['html_format'] = self.options['html_format']
+        if 'latex_format' in self.options:
+            node['latex_format'] = self.options['latex_format']
 
         return [node]
 
@@ -316,7 +332,10 @@ _KNOWN_HTML_FORMATS = {
 
 
 def html_visit_plantuml(self, node):
-    fmt = self.builder.config.plantuml_output_format
+    if 'html_format' in node:
+        fmt = node['html_format']
+    else:
+        fmt = self.builder.config.plantuml_output_format
     if fmt == 'none':
         raise nodes.SkipNode
     try:
@@ -371,7 +390,10 @@ _KNOWN_LATEX_FORMATS = {
 
 
 def latex_visit_plantuml(self, node):
-    fmt = self.builder.config.plantuml_latex_output_format
+    if 'latex_format' in node:
+        fmt = node['latex_format']
+    else:
+        fmt = self.builder.config.plantuml_latex_output_format
     if fmt == 'none':
         raise nodes.SkipNode
     try:
