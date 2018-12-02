@@ -75,15 +75,16 @@ class UmlDirective(Directive):
     has_content = True
     required_arguments = 0
     optional_arguments = 1
-    option_spec = {'alt': directives.unchanged,
-                   'caption': directives.unchanged,
-                   'height': directives.length_or_unitless,
-                   'width': directives.length_or_percentage_or_unitless,
-                   'scale': directives.percentage,
-                   'align': align,
-                   'html_format': html_format,
-                   'latex_format': latex_format,
-                   }
+    option_spec = {
+        'alt': directives.unchanged,
+        'caption': directives.unchanged,
+        'height': directives.length_or_unitless,
+        'width': directives.length_or_percentage_or_unitless,
+        'scale': directives.percentage,
+        'align': align,
+        'html_format': html_format,
+        'latex_format': latex_format,
+    }
 
     def run(self):
         warning = self.state.document.reporter.warning
@@ -328,7 +329,7 @@ _KNOWN_HTML_FORMATS = {
     'svg': (('png', 'svg'), _get_svg_tag),
     'svg_img': (('svg',), _get_svg_img_tag),
     'svg_obj': (('svg',), _get_svg_obj_tag),
-    }
+}
 
 
 def html_visit_plantuml(self, node):
@@ -386,7 +387,7 @@ _KNOWN_LATEX_FORMATS = {
     'eps': ('eps', lambda self, refname, fname: (refname, fname)),
     'pdf': ('eps', _convert_eps_to_pdf),
     'png': ('png', lambda self, refname, fname: (refname, fname)),
-    }
+}
 
 
 def latex_visit_plantuml(self, node):
