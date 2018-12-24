@@ -422,6 +422,38 @@ def latex_depart_plantuml(self, node):
     pass
 
 
+def confluence_visit_plantuml(self, node):
+    fmt = self.builder.config.plantuml_output_format
+    if fmt == 'none':
+        raise nodes.SkipNode
+    try:
+        try:
+            fileformats, _ = _KNOWN_HTML_FORMATS[fmt]
+        except KeyError:
+            raise PlantUmlError(
+                'plantuml_output_format must be one of %s, but is %r'
+                % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
+        refname, outfname = render_plantuml(self, node, fileformats[0])
+    except PlantUmlError as err:
+        self.builder.warn(str(err))
+        raise nodes.SkipNode
+
+    img_node = nodes.image(uri=outfname, **node.attributes)
+    img_node.delattr('uml')
+    img_node.document = node.document
+    img_node.parent = node.parent
+    node.parent.children.insert(node.parent.children.index(node), img_node)
+    if not img_node.hasattr('alt'):
+        img_node['alt'] = node['uml']
+
+    from sphinxcontrib.confluencebuilder import ConfluenceLogger
+    ConfluenceLogger.info('re-scanning for assets... ', nonl=0)
+    self.assets.process(list(self.assets.env.all_docs.keys()))
+    ConfluenceLogger.info('done\n')
+
+    return self.visit_image(img_node)
+
+
 def text_visit_plantuml(self, node):
     try:
         text = render_plantuml_inline(self, node, 'txt')
@@ -457,6 +489,7 @@ _NODE_VISITORS = {
     'man': (unsupported_visit_plantuml, None),  # TODO
     'texinfo': (unsupported_visit_plantuml, None),  # TODO
     'text': (text_visit_plantuml, None),
+    'confluence': (confluence_visit_plantuml, None),
 }
 
 
