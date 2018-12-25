@@ -16,6 +16,7 @@ import os
 import re
 import shlex
 import subprocess
+from contextlib import contextmanager
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -332,13 +333,11 @@ _KNOWN_HTML_FORMATS = {
 }
 
 
-def html_visit_plantuml(self, node):
-    if 'html_format' in node:
-        fmt = node['html_format']
-    else:
-        fmt = self.builder.config.plantuml_output_format
+@contextmanager
+def _prepare_html_render(self, fmt):
     if fmt == 'none':
         raise nodes.SkipNode
+
     try:
         try:
             fileformats, gettag = _KNOWN_HTML_FORMATS[fmt]
@@ -346,12 +345,24 @@ def html_visit_plantuml(self, node):
             raise PlantUmlError(
                 'plantuml_output_format must be one of %s, but is %r'
                 % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
-        # fnames: {fileformat: (refname, outfname), ...}
-        fnames = dict((e, render_plantuml(self, node, e))
-                      for e in fileformats)
+
+        yield fileformats, gettag
+
     except PlantUmlError as err:
         self.builder.warn(str(err))
         raise nodes.SkipNode
+
+
+def html_visit_plantuml(self, node):
+    if 'html_format' in node:
+        fmt = node['html_format']
+    else:
+        fmt = self.builder.config.plantuml_output_format
+
+    with _prepare_html_render(self, fmt) as (fileformats, gettag):
+        # fnames: {fileformat: (refname, outfname), ...}
+        fnames = dict((e, render_plantuml(self, node, e))
+                      for e in fileformats)
 
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
     self.body.append(gettag(self, fnames, node))
@@ -424,20 +435,10 @@ def latex_depart_plantuml(self, node):
 
 def confluence_visit_plantuml(self, node):
     fmt = self.builder.config.plantuml_output_format
-    if fmt == 'none':
-        raise nodes.SkipNode
-    try:
-        try:
-            fileformats, _ = _KNOWN_HTML_FORMATS[fmt]
-        except KeyError:
-            raise PlantUmlError(
-                'plantuml_output_format must be one of %s, but is %r'
-                % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
-        refname, outfname = render_plantuml(self, node, fileformats[0])
-    except PlantUmlError as err:
-        self.builder.warn(str(err))
-        raise nodes.SkipNode
+    with _prepare_html_render(self, fmt) as (fileformats, _):
+        _, outfname = render_plantuml(self, node, fileformats[0])
 
+    # Create a new image node in the document
     img_node = nodes.image(uri=outfname, **node.attributes)
     img_node.delattr('uml')
     img_node.document = node.document
@@ -446,11 +447,13 @@ def confluence_visit_plantuml(self, node):
     if not img_node.hasattr('alt'):
         img_node['alt'] = node['uml']
 
+    # Confluence builder needs to be aware of the new asset
     from sphinxcontrib.confluencebuilder import ConfluenceLogger
     ConfluenceLogger.info('re-scanning for assets... ', nonl=0)
     self.assets.process(list(self.assets.env.all_docs.keys()))
     ConfluenceLogger.info('done\n')
 
+    # Handle the new node as a regular image
     return self.visit_image(img_node)
 
 
