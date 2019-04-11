@@ -26,6 +26,8 @@ from sphinx.util.osutil import (
     ENOENT,
 )
 
+from sphinx.util.nodes import set_source_info
+
 try:
     from PIL import Image
 except ImportError:
@@ -104,13 +106,11 @@ class UmlDirective(Directive):
             if 'align' in self.options:
                 node['align'] = self.options['align']
         if 'caption' in self.options:
-            import docutils.statemachine
-            cnode = nodes.Element()  # anonymous container for parsing
-            sl = docutils.statemachine.StringList([self.options['caption']],
-                                                  source='')
-            self.state.nested_parse(sl, self.content_offset, cnode)
-            caption = nodes.caption(self.options['caption'], '', *cnode)
-            node += caption
+            inodes, messages = self.state.inline_text(self.options['caption'], self.lineno)
+            caption_node = nodes.caption(self.options['caption'], '', *inodes)
+            caption_node.extend(messages)
+            set_source_info(self, caption_node)
+            node += caption_node
 
         return [node]
 
