@@ -508,7 +508,12 @@ _NODE_VISITORS = {
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
-    app.add_config_value('plantuml', 'plantuml', 'html')
+    try:
+        app.add_config_value('plantuml', 'plantuml', 'html',
+                             types=(str, tuple, list))
+    except TypeError:
+        # Sphinx < 1.4?
+        app.add_config_value('plantuml', 'plantuml', 'html')
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
