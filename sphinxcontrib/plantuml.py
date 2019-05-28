@@ -270,10 +270,16 @@ def _get_png_tag(self, fnames, node):
 
     # Add physical size to assist rendering (defaults)
     if not styles:
-        im = Image.open(outfname)
-        im.load()
-        styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
-                      for a, w in zip(['width', 'height'], im.size))
+        # the image may be corrupted if platuml isn't configured correctly,
+        # which isn't a hard error.
+        try:
+            im = Image.open(outfname)
+            im.load()
+            styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
+                          for a, w in zip(['width', 'height'], im.size))
+        except OSError as err:
+            logger.warning('plantuml: failed to get image size: %s'
+                           % err)
 
     return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
             '</a>\n'
