@@ -22,7 +22,6 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 from sphinx.errors import SphinxError
-from sphinx.util import logging
 from sphinx.util.nodes import set_source_info
 from sphinx.util.osutil import (
     ensuredir,
@@ -40,7 +39,14 @@ except ImportError:  # Sphinx < 1.4
     def search_image_for_language(filename, env):
         return filename
 
-logger = logging.getLogger(__name__)
+try:
+    from sphinx.util import logging
+    logger = logging.getLogger(__name__)
+    def _warn(self, msg):
+        logger.warning(msg)
+except (AttributeError, ImportError):  # Sphinx < 1.6
+    def _warn(self, msg):
+        self.builder.warn(msg)
 
 
 class PlantUmlError(SphinxError):
@@ -245,9 +251,9 @@ def _get_png_tag(self, fnames, node):
     # process images prior to html_vist.
     scale_attrs = [k for k in ('scale', 'width', 'height') if k in node]
     if scale_attrs and Image is None:
-        logger.warning('plantuml: unsupported scaling attributes: %s '
-                       '(install PIL or Pillow)'
-                       % ', '.join(scale_attrs))
+        _warn(self, ('plantuml: unsupported scaling attributes: %s '
+                     '(install PIL or Pillow)'
+                     % ', '.join(scale_attrs)))
     if not scale_attrs or Image is None:
         return ('<img src="%s" alt="%s"/>\n'
                 % (self.encode(refname), self.encode(alt)))
@@ -278,8 +284,7 @@ def _get_png_tag(self, fnames, node):
             styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
                           for a, w in zip(['width', 'height'], im.size))
         except OSError as err:
-            logger.warning('plantuml: failed to get image size: %s'
-                           % err)
+            _warn(self, 'plantuml: failed to get image size: %s' % err)
 
     return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
             '</a>\n'
@@ -358,7 +363,7 @@ def _prepare_html_render(self, fmt):
         yield fileformats, gettag
 
     except PlantUmlError as err:
-        logger.warning(str(err))
+        _warn(self, str(err))
         raise nodes.SkipNode
 
 
@@ -427,7 +432,7 @@ def latex_visit_plantuml(self, node):
         refname, outfname = render_plantuml(self, node, fileformat)
         refname, outfname = postproc(self, refname, outfname)
     except PlantUmlError as err:
-        logger.warning(str(err))
+        _warn(self, str(err))
         raise nodes.SkipNode
 
     # put node representing rendered image
@@ -470,7 +475,7 @@ def text_visit_plantuml(self, node):
     try:
         text = render_plantuml_inline(self, node, 'txt')
     except PlantUmlError as err:
-        logger.warning(str(err))
+        _warn(self, str(err))
         text = node['uml']  # fall back to uml text, which is still readable
 
     self.new_state()
@@ -484,14 +489,14 @@ def pdf_visit_plantuml(self, node):
         refname, outfname = render_plantuml(self, node, 'eps')
         refname, outfname = _convert_eps_to_pdf(self, refname, outfname)
     except PlantUmlError as err:
-        logger.warning(str(err))
+        _warn(self, str(err))
         raise nodes.SkipNode
     rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
     node.parent.replace(node, rep)
 
 
 def unsupported_visit_plantuml(self, node):
-    logger.warning('plantuml: unsupported output format (node skipped)')
+    _warn(self, 'plantuml: unsupported output format (node skipped)')
     raise nodes.SkipNode
 
 
