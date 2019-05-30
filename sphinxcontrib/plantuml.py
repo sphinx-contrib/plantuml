@@ -283,7 +283,7 @@ def _get_png_tag(self, fnames, node):
             im.load()
             styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
                           for a, w in zip(['width', 'height'], im.size))
-        except OSError as err:
+        except (IOError, OSError) as err:
             _warn(self, 'plantuml: failed to get image size: %s' % err)
 
     return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
