@@ -89,3 +89,6 @@ plantuml_epstopdf
 
 .. _svg_img: https://caniuse.com/svg-img
 .. _svg_obj: https://caniuse.com/svg
+
+plantuml_syntax_error_image
+  Should plantuml generate images with render errors. (default: False)
