@@ -218,7 +218,10 @@ def render_plantuml(self, node, fileformat):
                                 % self.builder.config.plantuml)
         serr = p.communicate(node['uml'].encode('utf-8'))[1]
         if p.returncode != 0:
-            raise PlantUmlError('error while running plantuml\n\n%s' % serr)
+            if self.builder.config.plantuml_syntax_error_image:
+                _warn(self, 'error while running plantuml\n\n%s' % serr)
+            else:
+                raise PlantUmlError('error while running plantuml\n\n%s' % serr)
         return refname, outfname
     finally:
         f.close()
@@ -522,6 +525,7 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
+    app.add_config_value('plantuml_syntax_error_image', False, '')
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
