@@ -88,13 +88,13 @@ class UmlDirective(Directive):
     optional_arguments = 1
     option_spec = {
         'alt': directives.unchanged,
+        'align': align,
         'caption': directives.unchanged,
         'height': directives.length_or_unitless,
-        'width': directives.length_or_percentage_or_unitless,
-        'scale': directives.percentage,
-        'align': align,
         'html_format': html_format,
         'latex_format': latex_format,
+        'scale': directives.percentage,
+        'width': directives.length_or_percentage_or_unitless,
     }
 
     def run(self):
