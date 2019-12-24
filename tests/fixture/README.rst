@@ -1,7 +1,7 @@
 tests/fixture
 =============
 
-Files under `testx/fixture` are used by `test_functional.py`.
+Files under `tests/fixture` are used by `test_functional.py`.
 `test_functional.py` runs sphinx.build with *fake* plantuml executable,
 `fakecmd.py`.
 
