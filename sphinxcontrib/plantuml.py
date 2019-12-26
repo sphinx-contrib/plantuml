@@ -93,6 +93,7 @@ class UmlDirective(Directive):
         'height': directives.length_or_unitless,
         'html_format': html_format,
         'latex_format': latex_format,
+        'name': directives.unchanged,
         'scale': directives.percentage,
         'width': directives.length_or_percentage_or_unitless,
     }
@@ -134,6 +135,7 @@ class UmlDirective(Directive):
             caption_node.extend(messages)
             set_source_info(self, caption_node)
             node += caption_node
+        self.add_name(node)
         if 'html_format' in self.options:
             node['html_format'] = self.options['html_format']
         if 'latex_format' in self.options:

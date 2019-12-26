@@ -139,6 +139,18 @@ def test_buildhtml_caption():
             in readfile('index.html'))
 
 @with_runsphinx('html')
+def test_buildhtml_name():
+    """Generate HTML with name specified
+
+    .. uml::
+       :caption: Caption
+       :name: label
+
+       Hello
+    """
+    assert b'<div class="figure" id="label">' in readfile('index.html')
+
+@with_runsphinx('html')
 def test_buildhtml_nonascii():
     u"""Generate simple HTML of non-ascii diagram
 
