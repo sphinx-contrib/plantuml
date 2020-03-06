@@ -1,9 +1,10 @@
+FAKEROOT = fakeroot
 PYTHON = python
 TWINE = twine
 
 .PHONY: dist
 dist:
-	$(PYTHON) setup.py sdist
+	$(FAKEROOT) $(PYTHON) setup.py sdist
 
 .PHONY: upload
 upload: dist
