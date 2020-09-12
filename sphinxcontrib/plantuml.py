@@ -409,7 +409,7 @@ def _convert_eps_to_pdf(self, refname, fname):
                             % self.builder.config.plantuml_epstopdf)
     serr = p.communicate()[1]
     if p.returncode != 0:
-        raise PlantUmlError('error while running epstopdf\n\n' + serr)
+        raise PlantUmlError('error while running epstopdf\n\n%s' % serr)
     return refname[:-4] + '.pdf', fname[:-4] + '.pdf'
 
 
