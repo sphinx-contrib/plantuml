@@ -148,7 +148,8 @@ def test_buildhtml_name():
 
        Hello
     """
-    assert b'<div class="figure" id="label">' in readfile('index.html')
+    # assert b'<div class="figure" id="label">' in readfile('index.html')
+    assert b'<div class="figure align-default" id="label">' in readfile('index.html')
 
 @with_runsphinx('html')
 def test_buildhtml_nonascii():
@@ -270,3 +271,72 @@ def test_buildpdf_simple():
     epscontent = readfile(epsfiles[0]).splitlines()
     assert b'-teps' in epscontent[0]
     assert_equals(b'Hello', epscontent[1][2:])
+
+
+@with_runsphinx('html', plantuml_use_ftp_mode=True, plantuml='plantuml')
+def test_buildhtml_simple_with_ftp_support_for_png():
+    """Generate simple HTML
+
+    .. uml::
+
+       @startuml
+       a -> b
+       b -> c
+       c --> a
+       @enduml
+
+    .. uml::
+
+       @startuml
+       x -> y
+       y -> z
+       z --> x
+       @enduml
+    """
+    assert readfile('index.html').count(b'<img src="_images/plantuml') == 2
+
+
+@with_runsphinx('html', plantuml_use_ftp_mode=True, plantuml='plantuml', plantuml_output_format='svg_img')
+def test_buildhtml_simple_with_ftp_support_for_svg_img():
+    """Generate simple HTML
+
+    .. uml::
+
+       @startuml
+       a -> b
+       b -> c
+       c --> a
+       @enduml
+
+    .. uml::
+
+       @startuml
+       x -> y
+       y -> z
+       z --> x
+       @enduml
+    """
+    assert readfile('index.html').count(b'<img src="_images/plantuml') == 2
+
+
+@with_runsphinx('html', plantuml_use_ftp_mode=True, plantuml='plantuml', plantuml_output_format='svg_obj')
+def test_buildhtml_simple_with_ftp_support_for_svg_obj():
+    """Generate simple HTML
+
+    .. uml::
+
+       @startuml
+       a -> b
+       b -> c
+       c --> a
+       @enduml
+
+    .. uml::
+
+       @startuml
+       x -> y
+       y -> z
+       z --> x
+       @enduml
+    """
+    assert readfile('index.html').count(b'<object data="_images/plantuml') == 2

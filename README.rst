@@ -92,3 +92,23 @@ plantuml_epstopdf
 
 plantuml_syntax_error_image
   Should plantuml generate images with render errors. (default: False)
+
+plantuml_use_ftp_mode
+  Starts a local FTP server provided by plantuml. (default: False)
+  Can reduce generation time by ~60%, if many plantuml diagrams shall to be generated.
+  For more details see: https://plantuml.com/ftp
+
+  **Important**: Does not support output format `svg` for `plantuml_output_format`. `svg_img` and `svg_obj`
+  are supported.
+
+plantuml_ftp_port
+   Custom port, which is used to start and connect to the plantuml FTP server. (default: 4242)
+
+plantuml_ftp_url
+   URL to use for connecting to a plantuml FTP server. (default: '127.0.0.1')
+   If set, `plantuml_spawn_ftp_server` should be set to `False`.
+
+plantuml_spawn_ftp_server
+    Indicates, if a local FTP server shall be started during build. Or if an external instance is used.
+    (default: True).
+    If set to `False`, `plantuml_ftp_url` should also be set.
