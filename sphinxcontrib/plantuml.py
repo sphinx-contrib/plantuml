@@ -12,11 +12,15 @@
 import codecs
 import errno
 import hashlib
+import io
 import os
 import re
 import shlex
 import subprocess
+import time
 from contextlib import contextmanager
+from ftplib import FTP
+from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import directives
@@ -55,6 +59,77 @@ class PlantUmlError(SphinxError):
 
 class plantuml(nodes.General, nodes.Element):
     pass
+
+
+class PlantumlFtp:
+    def __init__(self, env, node, fileformat, url='127.0.0.1', port=4242):
+        self.env = env
+        self.node = node
+        self.fileformat = fileformat
+        self.url = url
+        self.port = port
+        self.ftp = FTP()
+        self.is_connected = False
+        self.connection_try = 0
+        self.connection_try_max = 5
+        self.server_process = None
+
+    def start_server(self):
+        """Cares about starting an extra process for the ftp server"""
+        server_args = generate_plantuml_args(self.env, self.node, self.fileformat)
+        server_args.extend(['-ftp'])
+        self.server_process = subprocess.Popen(server_args,
+                                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        logger.info('PlantUML server started')
+
+    def stop_server(self):
+        """Kills hard the server"""
+        self.server_process.terminate()
+        logger.info('PlantUML server stopped')
+        # Give the system some time to close/terminate the process.
+        # This is important, if sphinx gets executed several times in a row (e.g. during tests).
+        # In this case it can happen, that the startup of the next ftp-server iteration is before the
+        # system has terminated the old process. Then the newer process gets terminated with the termination
+        # of the old process.
+        time.sleep(0.5)
+
+    def connect(self):
+        """Connects the client part to the server"""
+        # Server may not yet be running. So lets try it several times.
+        # Should only be needed for first image, after that server is up all the time.
+        while not self.is_connected and self.connection_try < self.connection_try_max:
+            self.connection_try += 1
+            try:
+                self.ftp.connect(self.url, self.port)
+                self.ftp.login()
+                self.ftp.set_pasv(False)
+                self.is_connected = True
+            except ConnectionRefusedError:
+                logger.info(f'Plantuml FTP connection refused. Trying again... '
+                            f'[{self.connection_try}/{self.connection_try_max}]')
+                time.sleep(0.2)
+        logger.info('Plantuml FTP connection accepted')
+
+    def generate(self, input, output_file):
+        """
+        Generates plantuml image based on a given input(text).
+        The result is stored in a given file handler.
+        """
+        file_upload = io.BytesIO(input)
+        # Get the pure filename (no path, no extension) and use it
+        # as unique name for the upload and download
+        file_name = Path(output_file.name).stem
+        file_ext = Path(output_file.name).suffix
+        self.ftp.storbinary(f"STOR {file_name}.txt", file_upload)
+        self.ftp.retrbinary(f'RETR {file_name}{file_ext}', output_file.write)
+        # Delete uploaded and generated files, otherwise they will be kept
+        # in memory till the server stops running.
+        # Do not try to delete the files by its file names.
+        # This will only delete their content, but not the file itself (known bug).
+        self.ftp.sendcmd(f'DELE *.*')
+
+
+PLANTUML_FTP_SERVER = None
 
 
 def align(argument):
@@ -206,25 +281,44 @@ def render_plantuml(self, node, fileformat):
     absincdir = os.path.join(self.builder.srcdir, node['incdir'])
     ensuredir(os.path.dirname(outfname))
     f = open(outfname, 'wb')
+
     try:
-        try:
-            p = subprocess.Popen(generate_plantuml_args(self, node,
-                                                        fileformat),
-                                 stdout=f, stdin=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 cwd=absincdir)
-        except OSError as err:
-            if err.errno != ENOENT:
-                raise
-            raise PlantUmlError('plantuml command %r cannot be run'
-                                % self.builder.config.plantuml)
-        serr = p.communicate(node['uml'].encode('utf-8'))[1]
-        if p.returncode != 0:
-            if self.builder.config.plantuml_syntax_error_image:
-                _warn(self, 'error while running plantuml\n\n%s' % serr)
-            else:
-                raise PlantUmlError('error while running plantuml\n\n%s' % serr)
-        return refname, outfname
+        # FTP Mode
+        if self.builder.config.plantuml_use_ftp_mode:
+            # If not yet done, start FTP server and store its instance globally.
+            # So it can be reused by later generation calls.
+            # Should get executed only once during a build.
+            global PLANTUML_FTP_SERVER
+            if not PLANTUML_FTP_SERVER:
+                PLANTUML_FTP_SERVER = PlantumlFtp(self, node, fileformat,
+                                                  url=self.builder.config.plantuml_ftp_url,
+                                                  port=self.builder.config.plantuml_ftp_port)
+                if self.builder.config.plantuml_spawn_ftp_server:
+                    PLANTUML_FTP_SERVER.start_server()
+                PLANTUML_FTP_SERVER.connect()
+
+            PLANTUML_FTP_SERVER.generate(node['uml'].encode('utf-8'), f)
+            return refname, outfname
+        # Normal Mode
+        else:
+            try:
+                p = subprocess.Popen(generate_plantuml_args(self, node,
+                                                            fileformat),
+                                     stdout=f, stdin=subprocess.PIPE,
+                                     stderr=subprocess.PIPE,
+                                     cwd=absincdir)
+            except OSError as err:
+                if err.errno != ENOENT:
+                    raise
+                raise PlantUmlError('plantuml command %r cannot be run'
+                                    % self.builder.config.plantuml)
+            serr = p.communicate(node['uml'].encode('utf-8'))[1]
+            if p.returncode != 0:
+                if self.builder.config.plantuml_syntax_error_image:
+                    _warn(self, 'error while running plantuml\n\n%s' % serr)
+                else:
+                    raise PlantUmlError('error while running plantuml\n\n%s' % serr)
+            return refname, outfname
     finally:
         f.close()
 
@@ -515,6 +609,17 @@ _NODE_VISITORS = {
 }
 
 
+def stop_ftp_server(app, exception):
+    if app.config.plantuml_use_ftp_mode:
+        global PLANTUML_FTP_SERVER
+        if PLANTUML_FTP_SERVER:
+            PLANTUML_FTP_SERVER.stop_server()
+            # Important: Set PLANTUML_FTP_SERVER to None.
+            # Needed for tests, otherwise the next test may find an already set PLANTUML_FTP_SERVER
+            # and therefore doesn't start the server.
+            PLANTUML_FTP_SERVER = None
+
+
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
@@ -528,6 +633,12 @@ def setup(app):
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
     app.add_config_value('plantuml_syntax_error_image', False, '')
+    app.add_config_value('plantuml_use_ftp_mode', False, '')
+    app.add_config_value('plantuml_ftp_url', '127.0.0.1', '')
+    app.add_config_value('plantuml_ftp_port', 4242, '')
+    app.add_config_value('plantuml_spawn_ftp_server', True, '')
+
+    app.connect('build-finished', stop_ftp_server)
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
