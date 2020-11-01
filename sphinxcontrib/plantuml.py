@@ -42,6 +42,19 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+if os.name == 'nt':
+    def rename(src, dst):
+        try:
+            os.rename(src, dst)
+        except OSError as err:
+            if err.errno != errno.EEXIST:
+                raise
+            os.unlink(dst)
+            os.rename(src, dst)
+else:
+    rename = os.rename
+
+
 class PlantUmlError(SphinxError):
     pass
 
@@ -257,7 +270,7 @@ class PlantumlBuilder(object):
 
         ensuredir(outdir)
         absincdir = os.path.join(self.builder.srcdir, node['incdir'])
-        with open(outfname, 'wb') as f:
+        with open(outfname + '.new', 'wb') as f:
             try:
                 p = subprocess.Popen(generate_plantuml_args(self, node,
                                                             fileformat),
@@ -276,7 +289,9 @@ class PlantumlBuilder(object):
                 else:
                     raise PlantUmlError('error while running plantuml\n\n%s'
                                         % serr)
-            return outfname
+
+        rename(outfname + '.new', outfname)
+        return outfname
 
 
 def _get_png_tag(self, fnames, node):
