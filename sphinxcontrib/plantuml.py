@@ -344,21 +344,22 @@ _KNOWN_HTML_FORMATS = {
 }
 
 
+def _lookup_html_format(fmt):
+    try:
+        return _KNOWN_HTML_FORMATS[fmt]
+    except KeyError:
+        raise PlantUmlError(
+            'plantuml_output_format must be one of %s, but is %r'
+            % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
+
+
 @contextmanager
 def _prepare_html_render(self, fmt):
     if fmt == 'none':
         raise nodes.SkipNode
 
     try:
-        try:
-            fileformats, gettag = _KNOWN_HTML_FORMATS[fmt]
-        except KeyError:
-            raise PlantUmlError(
-                'plantuml_output_format must be one of %s, but is %r'
-                % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
-
-        yield fileformats, gettag
-
+        yield _lookup_html_format(fmt)
     except PlantUmlError as err:
         logger.warning(str(err))
         raise nodes.SkipNode
@@ -412,6 +413,15 @@ _KNOWN_LATEX_FORMATS = {
 }
 
 
+def _lookup_latex_format(fmt):
+    try:
+        return _KNOWN_LATEX_FORMATS[fmt]
+    except KeyError:
+        raise PlantUmlError(
+            'plantuml_latex_output_format must be one of %s, but is %r'
+            % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), fmt))
+
+
 def latex_visit_plantuml(self, node):
     if 'latex_format' in node:
         fmt = node['latex_format']
@@ -420,12 +430,7 @@ def latex_visit_plantuml(self, node):
     if fmt == 'none':
         raise nodes.SkipNode
     try:
-        try:
-            fileformat, postproc = _KNOWN_LATEX_FORMATS[fmt]
-        except KeyError:
-            raise PlantUmlError(
-                'plantuml_latex_output_format must be one of %s, but is %r'
-                % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), fmt))
+        fileformat, postproc = _lookup_latex_format(fmt)
         refname, outfname = render_plantuml(self, node, fileformat)
         refname, outfname = postproc(self, refname, outfname)
     except PlantUmlError as err:
