@@ -2,6 +2,6 @@
 import sys
 
 # embed as PostScript comment
-print '%', ' '.join(sys.argv)
+sys.stdout.write('% ' + ' '.join(sys.argv) + '\n')
 for line in sys.stdin:
     sys.stdout.write('% ' + line)
