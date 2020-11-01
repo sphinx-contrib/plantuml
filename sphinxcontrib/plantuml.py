@@ -22,6 +22,8 @@ from contextlib import contextmanager
 from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
+
+from sphinx import util
 from sphinx.errors import SphinxError
 from sphinx.util import (
     i18n,
@@ -250,6 +252,9 @@ class PlantumlBuilder(object):
         self.cache_dir = os.path.join(builder.outdir,
                                       builder.config.plantuml_cache_path)
 
+        self._base_cmdargs = _split_cmdargs(builder.config.plantuml)
+        self._base_cmdargs.extend(['-charset', 'utf-8'])
+
         self.image_formats = []
         if builder.format == 'html':
             fmt = builder.config.plantuml_output_format
@@ -297,6 +302,37 @@ class PlantumlBuilder(object):
                     f.write(b'\n@enduml\n')
 
             self._pending_keys.append(key)
+
+    def render_batches(self):
+        pending_keys = sorted(self._pending_keys)
+        for fileformat in self.image_formats:
+            for i in range(0, len(pending_keys), self.batch_size):
+                keys = pending_keys[i:i + self.batch_size]
+                with util.progress_message(
+                        'rendering plantuml diagrams [%d..%d/%d]'
+                        % (i, i + len(keys), len(pending_keys))):
+                    self._render_files(keys, fileformat)
+
+        del self._pending_keys[:]
+
+    def _render_files(self, keys, fileformat):
+        cmdargs = self._base_cmdargs[:]
+        cmdargs.extend(_ARGS_BY_FILEFORMAT[fileformat])
+        cmdargs.extend(os.path.join(k[:2], '%s.puml' % k) for k in keys)
+        try:
+            p = subprocess.Popen(cmdargs, stderr=subprocess.PIPE,
+                                 cwd=self.cache_dir)
+        except OSError as err:
+            if err.errno != ENOENT:
+                raise
+            raise PlantUmlError('plantuml command %r cannot be run'
+                                % self.builder.config.plantuml)
+        serr = p.communicate()[1]
+        if p.returncode != 0:
+            if self.builder.config.plantuml_syntax_error_image:
+                logger.warning('error while running plantuml\n\n%s' % serr)
+            else:
+                raise PlantUmlError('error while running plantuml\n\n%s' % serr)
 
     def render(self, node, fileformat):
         key = hash_plantuml_node(node)
@@ -612,6 +648,11 @@ def _on_doctree_read(app, doctree):
         app.builder.plantuml_builder.collect_nodes(doctree)
 
 
+def _on_env_updated(app, env):
+    if app.builder.plantuml_builder.batch_size > 1:
+        app.builder.plantuml_builder.render_batches()
+
+
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
@@ -629,6 +670,7 @@ def setup(app):
     app.add_config_value('plantuml_batch_size', 1, '')
     app.connect('builder-inited', _on_builder_inited)
     app.connect('doctree-read', _on_doctree_read)
+    app.connect('env-updated', _on_env_updated)
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:

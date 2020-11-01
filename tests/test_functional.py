@@ -191,6 +191,15 @@ def test_buildhtml_in_batches():
     assert (sorted(lines[1] for lines in puml_contents)
             == [b'Hello', b'Hello!', b'Hello!!'])
 
+    # batches: [2, 1], excluded: 1
+    png_files = glob.glob(os.path.join(_outdir, '_plantuml', '*', '*.png'))
+    assert len(png_files) == 4
+    png_commands = [readfile(f).splitlines()[0] for f in png_files]
+    assert len(set(png_commands)) == 3
+    assert sum(b'-pipe' in cmd for cmd in set(png_commands)) == 1
+    assert sorted(sum(c.endswith(b'.puml') for c in cmd.split())
+                  for cmd in set(png_commands)) == [0, 1, 2]
+
 @with_runsphinx('latex')
 def test_buildlatex_simple():
     """Generate simple LaTeX
