@@ -15,6 +15,7 @@ import hashlib
 import os
 import re
 import shlex
+import shutil
 import subprocess
 from contextlib import contextmanager
 
@@ -144,13 +145,17 @@ def _read_utf8(filename):
         fp.close()
 
 
-def generate_name(self, node, fileformat):
+def hash_plantuml_node(node):
     h = hashlib.sha1()
     # may include different file relative to doc
     h.update(node['incdir'].encode('utf-8'))
     h.update(b'\0')
     h.update(node['uml'].encode('utf-8'))
-    key = h.hexdigest()
+    return h.hexdigest()
+
+
+def generate_name(self, node, fileformat):
+    key = hash_plantuml_node(node)
     fname = 'plantuml-%s.%s' % (key, fileformat)
     imgpath = getattr(self.builder, 'imgpath', None)
     if imgpath:
@@ -195,30 +200,12 @@ def render_plantuml(self, node, fileformat):
     refname, outfname = generate_name(self, node, fileformat)
     if os.path.exists(outfname):
         return refname, outfname  # don't regenerate
-    absincdir = os.path.join(self.builder.srcdir, node['incdir'])
+
+    cachefname = self.builder.plantuml_builder.render(node, fileformat)
     ensuredir(os.path.dirname(outfname))
-    f = open(outfname, 'wb')
-    try:
-        try:
-            p = subprocess.Popen(generate_plantuml_args(self, node,
-                                                        fileformat),
-                                 stdout=f, stdin=subprocess.PIPE,
-                                 stderr=subprocess.PIPE,
-                                 cwd=absincdir)
-        except OSError as err:
-            if err.errno != ENOENT:
-                raise
-            raise PlantUmlError('plantuml command %r cannot be run'
-                                % self.builder.config.plantuml)
-        serr = p.communicate(node['uml'].encode('utf-8'))[1]
-        if p.returncode != 0:
-            if self.builder.config.plantuml_syntax_error_image:
-                logger.warning('error while running plantuml\n\n%s' % serr)
-            else:
-                raise PlantUmlError('error while running plantuml\n\n%s' % serr)
-        return refname, outfname
-    finally:
-        f.close()
+    # TODO: optionally do symlink/link
+    shutil.copyfile(cachefname, outfname)
+    return refname, outfname
 
 
 def render_plantuml_inline(self, node, fileformat):
@@ -260,6 +247,36 @@ class PlantumlBuilder(object):
             if fmt != 'none':
                 fileformat, _postproc = _lookup_latex_format(fmt)
                 self.image_formats = [fmt]
+
+    def render(self, node, fileformat):
+        key = hash_plantuml_node(node)
+        outdir = os.path.join(self.cache_dir, key[:2])
+        outfname = os.path.join(outdir, '%s.%s' % (key, fileformat))
+        if os.path.exists(outfname):
+            return outfname
+
+        ensuredir(outdir)
+        absincdir = os.path.join(self.builder.srcdir, node['incdir'])
+        with open(outfname, 'wb') as f:
+            try:
+                p = subprocess.Popen(generate_plantuml_args(self, node,
+                                                            fileformat),
+                                     stdout=f, stdin=subprocess.PIPE,
+                                     stderr=subprocess.PIPE,
+                                     cwd=absincdir)
+            except OSError as err:
+                if err.errno != ENOENT:
+                    raise
+                raise PlantUmlError('plantuml command %r cannot be run'
+                                    % self.builder.config.plantuml)
+            serr = p.communicate(node['uml'].encode('utf-8'))[1]
+            if p.returncode != 0:
+                if self.builder.config.plantuml_syntax_error_image:
+                    logger.warning('error while running plantuml\n\n%s' % serr)
+                else:
+                    raise PlantUmlError('error while running plantuml\n\n%s'
+                                        % serr)
+            return outfname
 
 
 def _get_png_tag(self, fnames, node):
