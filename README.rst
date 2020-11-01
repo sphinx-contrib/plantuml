@@ -92,3 +92,6 @@ plantuml_epstopdf
 
 plantuml_syntax_error_image
   Should plantuml generate images with render errors. (default: False)
+
+plantuml_cache_path
+  Directory where image cache is stored. (default: '_plantuml')

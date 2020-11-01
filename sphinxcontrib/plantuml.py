@@ -240,6 +240,28 @@ def render_plantuml_inline(self, node, fileformat):
     return sout.decode('utf-8')
 
 
+class PlantumlBuilder(object):
+    def __init__(self, builder):
+        # for compatibility with existing functions which expect self.builder
+        # TODO: remove self.builder
+        self.builder = builder
+
+        self.cache_dir = os.path.join(builder.outdir,
+                                      builder.config.plantuml_cache_path)
+
+        self.image_formats = []
+        if builder.format == 'html':
+            fmt = builder.config.plantuml_output_format
+            if fmt != 'none':
+                fileformats, _gettag = _lookup_html_format(fmt)
+                self.image_formats = list(fileformats)
+        elif builder.format == 'latex':
+            fmt = builder.config.plantuml_latex_output_format
+            if fmt != 'none':
+                fileformat, _postproc = _lookup_latex_format(fmt)
+                self.image_formats = [fmt]
+
+
 def _get_png_tag(self, fnames, node):
     refname, outfname = fnames['png']
     alt = node.get('alt', node['uml'])
@@ -512,6 +534,10 @@ _NODE_VISITORS = {
 }
 
 
+def _on_builder_inited(app):
+    app.builder.plantuml_builder = PlantumlBuilder(app.builder)
+
+
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
@@ -525,6 +551,8 @@ def setup(app):
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
     app.add_config_value('plantuml_syntax_error_image', False, '')
+    app.add_config_value('plantuml_cache_path', '_plantuml', '')
+    app.connect('builder-inited', _on_builder_inited)
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
