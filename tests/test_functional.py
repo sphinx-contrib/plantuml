@@ -160,6 +160,37 @@ def test_buildhtml_nonascii():
     assert b'-charset utf-8' in content[0]
     assert content[1][2:].decode('utf-8') == u'\u3042'
 
+@with_runsphinx('html', plantuml_batch_size=2)
+def test_buildhtml_in_batches():
+    """Render in batches
+
+    .. uml::
+
+       Hello
+
+    .. uml::
+
+       Hello!
+
+    .. uml::
+
+       @startuml
+       Hello!!
+       @enduml
+
+    .. uml::
+
+       !include seq.ja.uml
+    """
+    puml_files = glob.glob(os.path.join(_outdir, '_plantuml', '*', '*.puml'))
+    assert len(puml_files) == 3
+    puml_contents = [readfile(f).splitlines() for f in puml_files]
+    assert all(len(lines) == 3 for lines in puml_contents)
+    assert all(lines[0] == b'@startuml' for lines in puml_contents)
+    assert all(lines[-1] == b'@enduml' for lines in puml_contents)
+    assert (sorted(lines[1] for lines in puml_contents)
+            == [b'Hello', b'Hello!', b'Hello!!'])
+
 @with_runsphinx('latex')
 def test_buildlatex_simple():
     """Generate simple LaTeX

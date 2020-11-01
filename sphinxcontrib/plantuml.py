@@ -246,6 +246,7 @@ class PlantumlBuilder(object):
         # TODO: remove self.builder
         self.builder = builder
 
+        self.batch_size = builder.config.plantuml_batch_size
         self.cache_dir = os.path.join(builder.outdir,
                                       builder.config.plantuml_cache_path)
 
@@ -260,6 +261,42 @@ class PlantumlBuilder(object):
             if fmt != 'none':
                 fileformat, _postproc = _lookup_latex_format(fmt)
                 self.image_formats = [fmt]
+
+        self._known_keys = set()
+        self._pending_keys = []
+
+    def collect_nodes(self, doctree):
+        for node in doctree.traverse(plantuml):
+            key = hash_plantuml_node(node)
+            if key in self._known_keys:
+                continue
+            self._known_keys.add(key)
+
+            doc = node['uml'].encode('utf-8')
+            if b'!include' in doc or b'%filename' in doc:
+                # Heuristic to work around the path/filename issue. There's no
+                # easy way to specify the cwd of the doc without using -pipe.
+                continue
+
+            outdir = os.path.join(self.cache_dir, key[:2])
+            outfbase = os.path.join(outdir, key)
+            if all(os.path.exists('%s.%s' % (outfbase, sfx))
+                   for sfx in ['puml'] + self.image_formats):
+                continue
+
+            ensuredir(outdir)
+            with open(outfbase + '.puml', 'wb') as f:
+                # @startuml/enduml is mandatory in non-pipe mode. For backward
+                # compatibility, we do wrap the document only if @startXYZ is
+                # not specified.
+                started = doc.lstrip().startswith(b'@start')
+                if not started:
+                    f.write(b'@startuml\n')
+                f.write(doc)
+                if not started:
+                    f.write(b'\n@enduml\n')
+
+            self._pending_keys.append(key)
 
     def render(self, node, fileformat):
         key = hash_plantuml_node(node)
@@ -570,6 +607,11 @@ def _on_builder_inited(app):
     app.builder.plantuml_builder = PlantumlBuilder(app.builder)
 
 
+def _on_doctree_read(app, doctree):
+    if app.builder.plantuml_builder.batch_size > 1:
+        app.builder.plantuml_builder.collect_nodes(doctree)
+
+
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
@@ -584,7 +626,9 @@ def setup(app):
     app.add_config_value('plantuml_latex_output_format', 'png', '')
     app.add_config_value('plantuml_syntax_error_image', False, '')
     app.add_config_value('plantuml_cache_path', '_plantuml', '')
+    app.add_config_value('plantuml_batch_size', 1, '')
     app.connect('builder-inited', _on_builder_inited)
+    app.connect('doctree-read', _on_doctree_read)
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:

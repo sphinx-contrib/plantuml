@@ -95,3 +95,13 @@ plantuml_syntax_error_image
 
 plantuml_cache_path
   Directory where image cache is stored. (default: '_plantuml')
+
+plantuml_batch_size
+  **(EXPERIMENTAL)**
+  Run plantuml command per the specified number of images. (default: 1)
+
+  If enabled, plantuml documents will be first written to the cache directory,
+  and rendered in batches. This eliminates bootstrapping overhead of Java
+  runtime and allows plantuml to leverage multiple CPU cores.
+
+  To enable batch rendering, set the size to 100-1000.
