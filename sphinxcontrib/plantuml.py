@@ -367,6 +367,10 @@ class PlantumlBuilder(object):
         return outfname
 
 
+def _render_batches_on_vist(self):
+    self.builder.plantuml_builder.render_batches()
+
+
 def _get_png_tag(self, fnames, node):
     refname, outfname = fnames['png']
     alt = node.get('alt', node['uml'])
@@ -493,6 +497,7 @@ def _prepare_html_render(self, fmt):
 
 
 def html_visit_plantuml(self, node):
+    _render_batches_on_vist(self)
     if 'html_format' in node:
         fmt = node['html_format']
     else:
@@ -550,6 +555,7 @@ def _lookup_latex_format(fmt):
 
 
 def latex_visit_plantuml(self, node):
+    _render_batches_on_vist(self)
     if 'latex_format' in node:
         fmt = node['latex_format']
     else:
@@ -577,6 +583,7 @@ def latex_depart_plantuml(self, node):
 
 
 def confluence_visit_plantuml(self, node):
+    _render_batches_on_vist(self)
     fmt = self.builder.config.plantuml_output_format
     with _prepare_html_render(self, fmt) as (fileformats, _):
         _, outfname = render_plantuml(self, node, fileformats[0])
@@ -601,6 +608,7 @@ def confluence_visit_plantuml(self, node):
 
 
 def text_visit_plantuml(self, node):
+    _render_batches_on_vist(self)
     try:
         text = render_plantuml_inline(self, node, 'txt')
     except PlantUmlError as err:
@@ -614,6 +622,7 @@ def text_visit_plantuml(self, node):
 
 
 def pdf_visit_plantuml(self, node):
+    _render_batches_on_vist(self)
     try:
         refname, outfname = render_plantuml(self, node, 'eps')
         refname, outfname = _convert_eps_to_pdf(self, refname, outfname)
@@ -644,13 +653,18 @@ def _on_builder_inited(app):
 
 
 def _on_doctree_read(app, doctree):
+    # Collect as many static nodes as possible prior to start building.
     if app.builder.plantuml_builder.batch_size > 1:
         app.builder.plantuml_builder.collect_nodes(doctree)
 
 
-def _on_env_updated(app, env):
+def _on_doctree_resolved(app, doctree, docname):
+    # Dynamically generated nodes will be collected here, which will be
+    # batched at node visitor. Since 'doctree-resolved' and node visits
+    # can be intermixed, there's no way to batch rendering of dynamic nodes
+    # at once.
     if app.builder.plantuml_builder.batch_size > 1:
-        app.builder.plantuml_builder.render_batches()
+        app.builder.plantuml_builder.collect_nodes(doctree)
 
 
 def setup(app):
@@ -670,7 +684,7 @@ def setup(app):
     app.add_config_value('plantuml_batch_size', 1, '')
     app.connect('builder-inited', _on_builder_inited)
     app.connect('doctree-read', _on_doctree_read)
-    app.connect('env-updated', _on_env_updated)
+    app.connect('doctree-resolved', _on_doctree_resolved)
 
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
