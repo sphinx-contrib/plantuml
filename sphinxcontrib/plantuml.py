@@ -22,7 +22,10 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 from sphinx.errors import SphinxError
-from sphinx.util import logging
+from sphinx.util import (
+    i18n,
+    logging,
+)
 from sphinx.util.nodes import set_source_info
 from sphinx.util.osutil import (
     ensuredir,
@@ -33,12 +36,6 @@ try:
     from PIL import Image
 except ImportError:
     Image = None
-
-try:
-    from sphinx.util.i18n import search_image_for_language
-except ImportError:  # Sphinx < 1.4
-    def search_image_for_language(filename, env):
-        return filename
 
 
 logger = logging.getLogger(__name__)
@@ -100,7 +97,7 @@ class UmlDirective(Directive):
             return [warning('uml directive cannot have both content and '
                             'a filename argument', line=self.lineno)]
         if self.arguments:
-            fn = search_image_for_language(self.arguments[0], env)
+            fn = i18n.search_image_for_language(self.arguments[0], env)
             relfn, absfn = env.relfn2path(fn)
             env.note_dependency(relfn)
             try:
