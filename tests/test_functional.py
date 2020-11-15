@@ -1,10 +1,10 @@
 import glob
-import nose
 import os
 import re
 import tempfile
 import shutil
 import sys
+import unittest
 
 from sphinx.application import Sphinx
 
@@ -49,7 +49,7 @@ def with_runsphinx(builder, **kwargs):
                     import rst2pdf
                     rst2pdf.__file__
                 except ImportError:
-                    raise nose.SkipTest
+                    raise unittest.SkipTest
             src = '\n'.join(l[4:] for l in func.__doc__.splitlines()[2:])
             os.mkdir(_outdir)
             try:
