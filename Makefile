@@ -1,5 +1,5 @@
 FAKEROOT = fakeroot
-PYTHON = python
+PYTHON = python3
 TWINE = twine
 
 .PHONY: dist
