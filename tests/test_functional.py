@@ -8,8 +8,6 @@ import sys
 
 from sphinx.application import Sphinx
 
-from nose.tools import *
-
 _fixturedir = os.path.join(os.path.dirname(__file__), 'fixture')
 _fakecmd = os.path.join(os.path.dirname(__file__), 'fakecmd.py')
 _fakeepstopdf = os.path.join(os.path.dirname(__file__), 'fakeepstopdf.py')
@@ -82,10 +80,10 @@ def test_buildhtml_simple_with_svg():
 
     pngcontent = readfile(pngfiles[0]).splitlines()
     assert b'-pipe' in pngcontent[0]
-    assert_equals(b'Hello', pngcontent[1][2:])
+    assert pngcontent[1][2:] == b'Hello'
     svgcontent = readfile(svgfiles[0]).splitlines()
     assert b'-tsvg' in svgcontent[0]
-    assert_equals(b'Hello', svgcontent[1][2:])
+    assert svgcontent[1][2:] == b'Hello'
 
 @with_runsphinx('html', plantuml_output_format='none')
 def test_buildhtml_no_output():
@@ -161,7 +159,7 @@ def test_buildhtml_nonascii():
     files = glob.glob(os.path.join(_outdir, '_images', 'plantuml-*.png'))
     content = readfile(files[0]).splitlines()
     assert b'-charset utf-8' in content[0]
-    assert_equals(u'\u3042', content[1][2:].decode('utf-8'))
+    assert content[1][2:].decode('utf-8') == u'\u3042'
 
 @with_runsphinx('latex')
 def test_buildlatex_simple():
@@ -178,7 +176,7 @@ def test_buildlatex_simple():
 
     content = readfile(files[0]).splitlines()
     assert b'-pipe' in content[0]
-    assert_equals(b'Hello', content[1][2:])
+    assert content[1][2:] == b'Hello'
 
 @with_runsphinx('latex', plantuml_latex_output_format='eps')
 def test_buildlatex_simple_with_eps():
@@ -195,7 +193,7 @@ def test_buildlatex_simple_with_eps():
 
     content = readfile(files[0]).splitlines()
     assert b'-teps' in content[0]
-    assert_equals(b'Hello', content[1][2:])
+    assert content[1][2:] == b'Hello'
 
 @with_runsphinx('latex', plantuml_latex_output_format='pdf')
 def test_buildlatex_simple_with_pdf():
@@ -214,7 +212,7 @@ def test_buildlatex_simple_with_pdf():
 
     epscontent = readfile(epsfiles[0]).splitlines()
     assert b'-teps' in epscontent[0]
-    assert_equals(b'Hello', epscontent[1][2:])
+    assert epscontent[1][2:] == b'Hello'
 
 @with_runsphinx('latex', plantuml_latex_output_format='none')
 def test_buildlatex_no_output():
@@ -269,4 +267,4 @@ def test_buildpdf_simple():
 
     epscontent = readfile(epsfiles[0]).splitlines()
     assert b'-teps' in epscontent[0]
-    assert_equals(b'Hello', epscontent[1][2:])
+    assert epscontent[1][2:] == b'Hello'

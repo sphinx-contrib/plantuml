@@ -2,8 +2,6 @@ import os
 import shutil
 import tempfile
 
-from nose.tools import *
-
 from sphinxcontrib import plantuml
 
 def setup():
@@ -28,4 +26,4 @@ def test_get_svg_style():
         '<svg xmlns="http://www.w3.org/2000/svg" height="147pt" '
         'style="width:115px;height:147px;" version="1.1" viewBox="0 0 115 147" '
         'width="115pt"><defs/>')
-    assert_equals('width:115px;height:147px;', plantuml._get_svg_style(fname))
+    assert plantuml._get_svg_style(fname) == 'width:115px;height:147px;'
