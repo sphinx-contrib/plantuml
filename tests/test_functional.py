@@ -40,7 +40,7 @@ def runsphinx(text, builder, confoverrides):
     app.build()
 
 def with_runsphinx(builder, **kwargs):
-    confoverrides = {'plantuml': _fakecmd}
+    confoverrides = {'plantuml': [sys.executable, _fakecmd]}
     confoverrides.update(kwargs)
     def wrapfunc(func):
         def test():
