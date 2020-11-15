@@ -10,7 +10,6 @@ from sphinx.application import Sphinx
 
 _fixturedir = os.path.join(os.path.dirname(__file__), 'fixture')
 _fakecmd = os.path.join(os.path.dirname(__file__), 'fakecmd.py')
-_fakeepstopdf = os.path.join(os.path.dirname(__file__), 'fakeepstopdf.py')
 
 def setup():
     global _tempdir, _srcdir, _outdir
