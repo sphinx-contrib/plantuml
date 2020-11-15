@@ -8,7 +8,7 @@ requires = ['Sphinx>=1.6']
 
 setup(
     name='sphinxcontrib-plantuml',
-    version='0.18.1',
+    version='0.19',
     url='https://github.com/sphinx-contrib/plantuml/',
     download_url='https://pypi.python.org/pypi/sphinxcontrib-plantuml',
     license='BSD',
