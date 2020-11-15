@@ -12,7 +12,7 @@ upload: dist
 
 .PHONY: check
 check:
-	$(PYTHON) `which nosetests`
+	$(PYTHON) -m pytest
 
 .PHONY: clean
 clean:
