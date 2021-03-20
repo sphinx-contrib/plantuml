@@ -636,6 +636,7 @@ _NODE_VISITORS = {
     'texinfo': (unsupported_visit_plantuml, None),  # TODO
     'text': (text_visit_plantuml, None),
     'confluence': (confluence_visit_plantuml, confluence_depart_plantuml),
+    'singleconfluence': (confluence_visit_plantuml, confluence_depart_plantuml),
 }
 
 
