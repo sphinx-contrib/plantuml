@@ -588,23 +588,14 @@ def confluence_visit_plantuml(self, node):
     with _prepare_html_render(self, fmt) as (fileformats, _):
         _, outfname = render_plantuml(self, node, fileformats[0])
 
-    # Create a new image node in the document
-    img_node = nodes.image(uri=outfname, **node.attributes)
-    img_node.delattr('uml')
-    img_node.document = node.document
-    img_node.parent = node.parent
-    node.parent.children.insert(node.parent.children.index(node), img_node)
-    if not img_node.hasattr('alt'):
-        img_node['alt'] = node['uml']
+    # put node representing rendered image
+    img_node = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
+    node.replace_self(img_node)
+    self.visit_image(img_node)
 
-    # Confluence builder needs to be aware of the new asset
-    from sphinxcontrib.confluencebuilder import ConfluenceLogger
-    ConfluenceLogger.info('re-scanning for assets... ', nonl=0)
-    self.assets.process(list(self.assets.env.all_docs.keys()))
-    ConfluenceLogger.info('done\n')
 
-    # Handle the new node as a regular image
-    return self.visit_image(img_node)
+def confluence_depart_plantuml(self, node):
+    pass
 
 
 def text_visit_plantuml(self, node):
@@ -644,7 +635,7 @@ _NODE_VISITORS = {
     'man': (unsupported_visit_plantuml, None),  # TODO
     'texinfo': (unsupported_visit_plantuml, None),  # TODO
     'text': (text_visit_plantuml, None),
-    'confluence': (confluence_visit_plantuml, None),
+    'confluence': (confluence_visit_plantuml, confluence_depart_plantuml),
 }
 
 
