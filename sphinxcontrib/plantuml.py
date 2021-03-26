@@ -265,7 +265,7 @@ class PlantumlBuilder(object):
             fmt = builder.config.plantuml_latex_output_format
             if fmt != 'none':
                 fileformat, _postproc = _lookup_latex_format(fmt)
-                self.image_formats = [fmt]
+                self.image_formats = [fileformat]
 
         self._known_keys = set()
         self._pending_keys = []
