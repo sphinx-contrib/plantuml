@@ -1,36 +1,49 @@
 PlantUML for Sphinx
 ===================
 
+Installation
+------------
+
+.. code-block::
+
+   pip install sphinxcontrib-plantuml
+
 Usage
 -----
 
-Once you enable this extension,
-::
+Add ``sphinxcontrib.plantuml`` to your extensions list in your ``conf.py``:
 
-    # Add any Sphinx extension module names here, as strings. They can be extensions
-    # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-    extensions = ['sphinxcontrib.plantuml']
 
-you may need to specify plantuml command in your conf.py::
+.. code-block:: python
 
-    plantuml = 'java -jar /path/to/plantuml.jar'
+   extensions = [
+     'sphinxcontrib.plantuml',
+   ]
 
-Instead, you can install a wrapper script in your PATH::
+You may also need to specify the plantuml command in your **conf.py**:
 
-    % cat <<EOT > /usr/local/bin/plantuml
-    #!/bin/sh -e
-    java -jar /path/to/plantuml.jar "$@"
-    EOT
-    % chmod +x /usr/local/bin/plantuml
+.. code-block:: python
 
-Then, write PlantUML text under ``.. uml::`` directive::
+   plantuml = 'java -jar /path/to/plantuml.jar'
+
+Instead, you can install a wrapper script in your PATH:
+
+.. code-block:: console
+
+   % cat <<EOT > /usr/local/bin/plantuml
+   #!/bin/sh -e
+   java -jar /path/to/plantuml.jar "$@"
+   EOT
+   % chmod +x /usr/local/bin/plantuml
+
+Then, write PlantUML text under the ``.. uml::`` directive::
 
     .. uml::
 
        Alice -> Bob: Hi!
        Alice <- Bob: How are you?
 
-or specify path to external PlantUML file::
+or specify path to an external PlantUML file::
 
     .. uml:: external.uml
 
@@ -42,7 +55,7 @@ You can specify ``height``, ``width``, ``scale`` and ``align``::
 
        Foo <|-- Bar
 
-You can specify a caption::
+You can also specify a caption::
 
     .. uml::
        :caption: Caption with **bold** and *italic*
