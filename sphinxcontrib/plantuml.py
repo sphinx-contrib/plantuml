@@ -31,8 +31,7 @@ from sphinx.util import (
 )
 from sphinx.util.nodes import set_source_info
 from sphinx.util.osutil import (
-    ensuredir,
-    ENOENT,
+    ensuredir
 )
 
 try:
@@ -232,7 +231,7 @@ def render_plantuml_inline(self, node, fileformat):
                              stderr=subprocess.PIPE,
                              cwd=absincdir)
     except OSError as err:
-        if err.errno != ENOENT:
+        if err.errno != FileNotFoundError:
             raise
         raise PlantUmlError('plantuml command %r cannot be run'
                             % self.builder.config.plantuml)
@@ -323,7 +322,7 @@ class PlantumlBuilder(object):
             p = subprocess.Popen(cmdargs, stderr=subprocess.PIPE,
                                  cwd=self.cache_dir)
         except OSError as err:
-            if err.errno != ENOENT:
+            if err.errno != FileNotFoundError:
                 raise
             raise PlantUmlError('plantuml command %r cannot be run'
                                 % self.builder.config.plantuml)
@@ -351,7 +350,7 @@ class PlantumlBuilder(object):
                                      stderr=subprocess.PIPE,
                                      cwd=absincdir)
             except OSError as err:
-                if err.errno != ENOENT:
+                if err.errno != FileNotFoundError:
                     raise
                 raise PlantUmlError('plantuml command %r cannot be run'
                                     % self.builder.config.plantuml)
@@ -528,7 +527,7 @@ def _convert_eps_to_pdf(self, refname, fname):
             p = subprocess.Popen(['bash'] + args, stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
     except OSError as err:
-        if err.errno != ENOENT:
+        if err.errno != FileNotFoundError:
             raise
         raise PlantUmlError('epstopdf command %r cannot be run'
                             % self.builder.config.plantuml_epstopdf)
