@@ -1,5 +1,6 @@
 *.pyc
 *~
+/tests/fixture/_build/
 build/
 dist/
 sphinxcontrib_plantuml.egg-info/
