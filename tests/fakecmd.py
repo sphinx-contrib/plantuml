@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import sys
 
+
 def dump(fout, fin):
     # embed as PostScript comment
     fout.write('% ' + ' '.join(sys.argv) + '\n')
     for line in fin:
         fout.write('% ' + line)
+
 
 if '-pipe' in sys.argv:
     dump(sys.stdout, sys.stdin)

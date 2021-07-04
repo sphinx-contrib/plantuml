@@ -4,12 +4,15 @@ import tempfile
 
 from sphinxcontrib import plantuml
 
+
 def setup():
     global _tempdir
     _tempdir = tempfile.mkdtemp()
 
+
 def teardown():
     shutil.rmtree(_tempdir)
+
 
 def writefile(fname, data):
     f = open(fname, 'w')
@@ -17,6 +20,7 @@ def writefile(fname, data):
         f.write(data)
     finally:
         f.close()
+
 
 def test_get_svg_style():
     fname = os.path.join(_tempdir, 'a.svg')

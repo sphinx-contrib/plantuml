@@ -11,6 +11,7 @@ from sphinx.application import Sphinx
 _fixturedir = os.path.join(os.path.dirname(__file__), 'fixture')
 _fakecmd = os.path.join(os.path.dirname(__file__), 'fakecmd.py')
 
+
 def setup():
     global _tempdir, _srcdir, _outdir
     _tempdir = tempfile.mkdtemp()
@@ -18,8 +19,10 @@ def setup():
     _outdir = os.path.join(_tempdir, 'out')
     os.mkdir(_srcdir)
 
+
 def teardown():
     shutil.rmtree(_tempdir)
+
 
 def readfile(fname):
     f = open(os.path.join(_outdir, fname), 'rb')
@@ -27,6 +30,7 @@ def readfile(fname):
         return f.read()
     finally:
         f.close()
+
 
 def runsphinx(text, builder, confoverrides):
     f = open(os.path.join(_srcdir, 'index.rst'), 'wb')
@@ -38,9 +42,11 @@ def runsphinx(text, builder, confoverrides):
                  confoverrides, status=sys.stdout, warning=sys.stdout)
     app.build()
 
+
 def with_runsphinx(builder, **kwargs):
     confoverrides = {'plantuml': [sys.executable, _fakecmd]}
     confoverrides.update(kwargs)
+
     def wrapfunc(func):
         def test():
             if builder == 'pdf':
@@ -59,7 +65,9 @@ def with_runsphinx(builder, **kwargs):
                 shutil.rmtree(_outdir)
         test.__name__ = func.__name__
         return test
+
     return wrapfunc
+
 
 @with_runsphinx('html', plantuml_output_format='svg')
 def test_buildhtml_simple_with_svg():
@@ -84,6 +92,7 @@ def test_buildhtml_simple_with_svg():
     assert b'-tsvg' in svgcontent[0]
     assert svgcontent[1][2:] == b'Hello'
 
+
 @with_runsphinx('html', plantuml_output_format='none')
 def test_buildhtml_no_output():
     """Generate simple HTML with uml directive disabled
@@ -93,6 +102,7 @@ def test_buildhtml_no_output():
        Hello
     """
     assert b'<img ' not in readfile('index.html')
+
 
 @with_runsphinx('html')
 def test_buildhtml_samediagram():
@@ -112,6 +122,7 @@ def test_buildhtml_samediagram():
                if b'<img src="_images/plantuml' in l]
     assert len(imgtags) == 2
 
+
 @with_runsphinx('html')
 def test_buildhtml_alt():
     """Generate HTML with alt specified
@@ -122,6 +133,7 @@ def test_buildhtml_alt():
        Hello
     """
     assert b'alt="Foo &lt;Bar&gt;"' in readfile('index.html')
+
 
 @with_runsphinx('html')
 def test_buildhtml_caption():
@@ -135,6 +147,7 @@ def test_buildhtml_caption():
     assert (b'Caption with <strong>bold</strong> and <em>italic</em>'
             in readfile('index.html'))
 
+
 @with_runsphinx('html')
 def test_buildhtml_name():
     """Generate HTML with name specified
@@ -146,6 +159,7 @@ def test_buildhtml_name():
        Hello
     """
     re.search(br'<div class="figure[^"]*" id="label">', readfile('index.html'))
+
 
 @with_runsphinx('html')
 def test_buildhtml_nonascii():
@@ -159,6 +173,7 @@ def test_buildhtml_nonascii():
     content = readfile(files[0]).splitlines()
     assert b'-charset utf-8' in content[0]
     assert content[1][2:].decode('utf-8') == u'\u3042'
+
 
 @with_runsphinx('html', plantuml_batch_size=2)
 def test_buildhtml_in_batches():
@@ -200,6 +215,7 @@ def test_buildhtml_in_batches():
     assert sorted(sum(c.endswith(b'.puml') for c in cmd.split())
                   for cmd in set(png_commands)) == [0, 1, 2]
 
+
 @with_runsphinx('latex')
 def test_buildlatex_simple():
     """Generate simple LaTeX
@@ -217,6 +233,7 @@ def test_buildlatex_simple():
     assert b'-pipe' in content[0]
     assert content[1][2:] == b'Hello'
 
+
 @with_runsphinx('latex', plantuml_latex_output_format='eps')
 def test_buildlatex_simple_with_eps():
     """Generate simple LaTeX with EPS
@@ -233,6 +250,7 @@ def test_buildlatex_simple_with_eps():
     content = readfile(files[0]).splitlines()
     assert b'-teps' in content[0]
     assert content[1][2:] == b'Hello'
+
 
 @with_runsphinx('latex', plantuml_latex_output_format='pdf')
 def test_buildlatex_simple_with_pdf():
@@ -253,6 +271,7 @@ def test_buildlatex_simple_with_pdf():
     assert b'-teps' in epscontent[0]
     assert epscontent[1][2:] == b'Hello'
 
+
 @with_runsphinx('latex', plantuml_latex_output_format='none')
 def test_buildlatex_no_output():
     """Generate simple LaTeX with uml directive disabled
@@ -263,6 +282,7 @@ def test_buildlatex_no_output():
     """
     assert not re.search(br'\\(sphinx)?includegraphics\{+plantuml-',
                          readfile('plantuml_fixture.tex'))
+
 
 @with_runsphinx('latex')
 def test_buildlatex_with_caption():
@@ -278,6 +298,7 @@ def test_buildlatex_with_caption():
     assert re.search(br'\\begin\{figure\}\[htbp\]', out)
     assert not re.search(br'\\begin\{flushNone', out)  # issue #136
 
+
 @with_runsphinx('latex')
 def test_buildlatex_with_align():
     """Generate LaTeX with caption
@@ -290,6 +311,7 @@ def test_buildlatex_with_align():
     out = readfile('plantuml_fixture.tex')
     assert (re.search(br'\\begin\{figure\}\[htbp\]\\begin\{flushright\}', out)
             or re.search(br'\\begin\{wrapfigure\}\{r\}', out))
+
 
 @with_runsphinx('pdf')
 def test_buildpdf_simple():
