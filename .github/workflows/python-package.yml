@@ -26,10 +26,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        # install epstopdf
-        sudo apt install texlive-font-utils
+        # also install epstopdf, latexmk, pdflatex, etc.
+        sudo apt install latexmk plantuml texlive texlive-font-utils texlive-latex-extra
         python -m pip install --upgrade pip
-        python -m pip install flake8 pytest sphinx
+        python -m pip install Pillow flake8 pytest sphinx
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
@@ -39,3 +39,7 @@ jobs:
     - name: Test with pytest
       run: |
         python -m pytest
+    - name: Build example docs
+      run: |
+        make -C tests/fixture html
+        make -C tests/fixture latexpdf
