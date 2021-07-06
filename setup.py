@@ -4,8 +4,6 @@ from setuptools import setup, find_packages
 
 long_desc = open('README.rst').read()
 
-requires = ['Sphinx>=1.6']
-
 setup(
     name='sphinxcontrib-plantuml',
     version='0.21',
@@ -31,6 +29,5 @@ setup(
     platforms='any',
     packages=find_packages(),
     include_package_data=True,
-    install_requires=requires,
     namespace_packages=['sphinxcontrib'],
 )

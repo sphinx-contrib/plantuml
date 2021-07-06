@@ -118,3 +118,27 @@ plantuml_batch_size
   runtime and allows plantuml to leverage multiple CPU cores.
 
   To enable batch rendering, set the size to 100-1000.
+
+Developing
+----------
+
+Install the python test dependencies with
+
+.. code-block::
+
+   pip install sphinxcontrib-plantuml[test]
+
+
+In addition the following non-python dependencies are required in order to run the tests:
+
+* `latexmk`
+* `plantuml`
+* `texlive`
+* `texlive-font-utils`
+* `texlive-latex-extra`
+
+The tests can be executed using `pytest`
+
+.. code-block::
+
+    pytest
