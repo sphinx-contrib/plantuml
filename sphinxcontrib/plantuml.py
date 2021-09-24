@@ -581,11 +581,24 @@ def latex_depart_plantuml(self, node):
     pass
 
 
+_KNOWN_CONFLUENCE_FORMATS = [
+    'png',
+    'svg',
+]
+
+
 def confluence_visit_plantuml(self, node):
     _render_batches_on_vist(self)
     fmt = self.builder.config.plantuml_output_format
-    with _prepare_html_render(self, fmt) as (fileformats, _):
-        _, outfname = render_plantuml(self, node, fileformats[0])
+    if fmt == 'none':
+        raise nodes.SkipNode
+
+    if fmt not in _KNOWN_CONFLUENCE_FORMATS:
+        raise PlantUmlError(
+            'plantuml_output_format must be one of %s, but is %r'
+            % (', '.join(map(repr, _KNOWN_CONFLUENCE_FORMATS)), fmt))
+
+    _, outfname = render_plantuml(self, node, fmt)
 
     # put node representing rendered image
     img_node = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
