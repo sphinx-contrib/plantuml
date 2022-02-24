@@ -199,6 +199,7 @@ _ARGS_BY_FILEFORMAT = {
     'png': [],
     'svg': ['-tsvg'],
     'txt': ['-ttxt'],
+    'latex': ['-tlatex:nopreamble'],
 }
 
 
@@ -541,6 +542,7 @@ _KNOWN_LATEX_FORMATS = {
     'eps': ('eps', lambda self, refname, fname: (refname, fname)),
     'pdf': ('eps', _convert_eps_to_pdf),
     'png': ('png', lambda self, refname, fname: (refname, fname)),
+    'tikz': ('latex', lambda self, refname, fname: (refname, fname)),
 }
 
 
@@ -569,12 +571,20 @@ def latex_visit_plantuml(self, node):
         logger.warning(str(err))
         raise nodes.SkipNode
 
-    # put node representing rendered image
-    img_node = nodes.image(uri=refname, **node.attributes)
-    img_node.delattr('uml')
-    if not img_node.hasattr('alt'):
-        img_node['alt'] = node['uml']
-    node.append(img_node)
+    if fmt == 'tikz':
+        package = '\\usepackage{tikz}'
+        if package not in self.elements['preamble']:
+            self.elements['preamble'] += package + '\n'
+        base, ext = os.path.splitext(refname)
+
+        self.body.append('\\input{{%s}%s}' % (base, ext))
+    else:
+        # put node representing rendered image
+        img_node = nodes.image(uri=refname, **node.attributes)
+        img_node.delattr('uml')
+        if not img_node.hasattr('alt'):
+            img_node['alt'] = node['uml']
+        node.append(img_node)
 
 
 def latex_depart_plantuml(self, node):

@@ -252,6 +252,24 @@ def test_buildlatex_simple_with_eps():
     assert content[1][2:] == b'Hello'
 
 
+@with_runsphinx('latex', plantuml_latex_output_format='tikz')
+def test_buildlatex_simple_with_tikz():
+    """Generate simple LaTeX with TikZ
+
+    .. uml::
+
+       Hello
+    """
+    files = glob.glob(os.path.join(_outdir, 'plantuml-*.latex'))
+    assert len(files) == 1
+    assert re.search(br'\\(sphinx)?input\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
+
+    content = readfile(files[0]).splitlines()
+    assert b'-tlatex:nopreamble' in content[0]
+    assert content[1][2:] == b'Hello'
+
+
 @with_runsphinx('latex', plantuml_latex_output_format='pdf')
 def test_buildlatex_simple_with_pdf():
     """Generate simple LaTeX with PDF
