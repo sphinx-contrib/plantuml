@@ -262,12 +262,51 @@ def test_buildlatex_simple_with_tikz():
     """
     files = glob.glob(os.path.join(_outdir, 'plantuml-*.latex'))
     assert len(files) == 1
-    assert re.search(br'\\(sphinx)?input\{+plantuml-',
+    assert re.search(br'\\input\{+plantuml-',
                      readfile('plantuml_fixture.tex'))
 
     content = readfile(files[0]).splitlines()
     assert b'-tlatex:nopreamble' in content[0]
     assert content[1][2:] == b'Hello'
+
+
+@with_runsphinx('latex', plantuml_latex_output_format='tikz')
+def test_buildlatex_simple_scale_with_tikz():
+    """Generate simple LaTeX with TikZ
+
+    .. uml::
+       :scale: 20%
+
+       Hello
+    """
+    assert re.search(br'\\adjustbox\{scale=0.2\}\{\\input\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
+
+
+@with_runsphinx('latex', plantuml_latex_output_format='tikz')
+def test_buildlatex_simple_width_with_tikz():
+    """Generate simple LaTeX with TikZ
+
+    .. uml::
+       :width: 50mm
+
+       Hello
+    """
+    assert re.search(br'\\adjustbox\{width=50mm\}\{\\input\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
+
+
+@with_runsphinx('latex', plantuml_latex_output_format='tikz')
+def test_buildlatex_simple_height_with_tikz():
+    """Generate simple LaTeX with TikZ
+
+    .. uml::
+       :height: 50mm
+
+       Hello
+    """
+    assert re.search(br'\\adjustbox\{height=50mm\}\{\\input\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
 
 
 @with_runsphinx('latex', plantuml_latex_output_format='pdf')

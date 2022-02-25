@@ -92,6 +92,7 @@ plantuml_latex_output_format
   :eps: generate .eps (not supported by `pdflatex`)
   :pdf: generate .eps and convert it to .pdf (requires `epstopdf`)
   :png: generate .png
+  :tikz: generate .latex in the TikZ format
   :none: do not generate any images (ignore uml directive)
 
   Because embedded png looks pretty bad, it is recommended to choose `pdf`
