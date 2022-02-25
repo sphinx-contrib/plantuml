@@ -555,6 +555,37 @@ def _lookup_latex_format(fmt):
             % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), fmt))
 
 
+def _latex_adjustbox_options(self, node):
+    adjustbox_options = []
+    if 'width' in node:
+        if 'scale' in node:
+            w = self.latex_image_length(node['width'], node['scale'])
+        else:
+            w = self.latex_image_length(node['width'])
+        if w:
+            adjustbox_options.append('width=%s' % w)
+    if 'height' in node:
+        if 'scale' in node:
+            h = self.latex_image_length(node['height'], node['scale'])
+        else:
+            h = self.latex_image_length(node['height'])
+        if h:
+            adjustbox_options.append('height=%s' % h)
+    if 'scale' in node:
+        if not adjustbox_options:
+            adjustbox_options.append('scale=%s'
+                                     % (float(node['scale']) / 100.0))
+    return adjustbox_options
+
+
+def _latex_add_package(self, package):
+    # TODO: Currently modifying the preamble to add a package, there may be
+    # a cleaner solution
+    package = '\\usepackage{%s}' % (package,)
+    if package not in self.elements['preamble']:
+        self.elements['preamble'] += package + '\n'
+
+
 def latex_visit_plantuml(self, node):
     _render_batches_on_vist(self)
     if 'latex_format' in node:
@@ -572,12 +603,18 @@ def latex_visit_plantuml(self, node):
         raise nodes.SkipNode
 
     if fmt == 'tikz':
-        package = '\\usepackage{tikz}'
-        if package not in self.elements['preamble']:
-            self.elements['preamble'] += package + '\n'
-        base, ext = os.path.splitext(refname)
+        _latex_add_package(self, 'tikz')
 
-        self.body.append('\\input{{%s}%s}' % (base, ext))
+        base, ext = os.path.splitext(refname)
+        input_macro = '\\input{{%s}%s}' % (base, ext)
+
+        adjustbox_options = _latex_adjustbox_options(self, node)
+        if adjustbox_options:
+            _latex_add_package(self, 'adjustbox')
+            options = ','.join(adjustbox_options)
+            self.body.append('\\adjustbox{%s}{%s}' % (options, input_macro))
+        else:
+            self.body.append(input_macro)
     else:
         # put node representing rendered image
         img_node = nodes.image(uri=refname, **node.attributes)
