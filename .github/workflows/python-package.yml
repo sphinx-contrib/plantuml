@@ -31,6 +31,13 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install Pillow flake8 pytest sphinx
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Work around sphinxcontrib namespace package conflicts
+      run: |
+        # if we had sphinxcontrib/ directory with no __init__.py in the sys.path,
+        # importing non-native namespace package would fail even if our local
+        # module should precede the native namespace package.
+        # https://packaging.python.org/en/latest/guides/packaging-namespace-packages/#native-namespace-packages
+        python -c 'import sphinxcontrib.plantuml' || rm -f sphinxcontrib/__init__.py*
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
