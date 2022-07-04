@@ -93,6 +93,7 @@ class UmlDirective(Directive):
     has_content = True
     required_arguments = 0
     optional_arguments = 1
+    final_argument_whitespace = True  # allow whitespace in arguments[-1]
     option_spec = {
         'alt': directives.unchanged,
         'align': align,
