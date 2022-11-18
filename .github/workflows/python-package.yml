@@ -27,6 +27,7 @@ jobs:
     - name: Install dependencies
       run: |
         # also install epstopdf, latexmk, pdflatex, etc.
+        sudo apt update
         sudo apt install latexmk plantuml texlive texlive-font-utils texlive-latex-extra
         python -m pip install --upgrade pip
         python -m pip install Pillow flake8 pytest sphinx
