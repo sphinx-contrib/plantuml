@@ -104,6 +104,7 @@ class UmlDirective(Directive):
         'name': directives.unchanged,
         'scale': directives.percentage,
         'width': directives.length_or_percentage_or_unitless,
+		'max-width': directives.length_or_percentage_or_unitless,
     }
 
     def run(self):
@@ -442,13 +443,24 @@ def _get_svg_style(fname):
     return m.group(1)
 
 
+def _svg_style_subst_width_height(style_str, wh_style_subst):
+    # remove width and height
+    style_str_wo_wh = re.sub(r'width:[^;]+[;]?|height:[^;]+[;]?', '', style_str)
+    return '%s; %s' % (style_str_wo_wh, wh_style_subst)
+
+def _svg_get_style_str(node, outfname):
+	style_str = _get_svg_style(outfname) or ''    
+	svg_attribs = ["%s:%s" % (key, val) for key, val in node.attributes.items() if key in ['width', 'height', 'max-width']]
+	return _svg_style_subst_width_height(style_str, '; '.join(svg_attribs))
+
 def _get_svg_tag(self, fnames, node):
     refname, outfname = fnames['svg']
+    style_str = _svg_get_style_str(node, outfname)
     return '\n'.join([
         # copy width/height style from <svg> tag, so that <object> area
         # has enough space.
         '<object data="%s" type="image/svg+xml" style="%s">' % (
-            self.encode(refname), _get_svg_style(outfname) or ''),
+            self.encode(refname), style_str),
         _get_png_tag(self, fnames, node),
         '</object>'])
 
