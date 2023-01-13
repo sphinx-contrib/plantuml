@@ -443,15 +443,14 @@ def _get_svg_style(fname):
     return m.group(1)
 
 
-def _svg_style_subst_width_height(style_str, wh_style_subst):
-    # remove width and height
-    style_str_wo_wh = re.sub(r'width:[^;]+[;]?|height:[^;]+[;]?', '', style_str)
-    return '%s; %s' % (style_str_wo_wh, wh_style_subst)
-
 def _svg_get_style_str(node, outfname):
-	style_str = _get_svg_style(outfname) or ''    
-	svg_attribs = ["%s:%s" % (key, val) for key, val in node.attributes.items() if key in ['width', 'height', 'max-width']]
-	return _svg_style_subst_width_height(style_str, '; '.join(svg_attribs))
+    width_height_styles = ["%s:%s" % (key, val) for key, val in node.attributes.items() if key in ['width', 'height', 'max-width']]
+    if len(width_height_styles) > 0:
+        style_str = '; '.join(width_height_styles)
+    else:
+        style_str = _get_svg_style(outfname) or ''
+    return style_str
+
 
 def _get_svg_tag(self, fnames, node):
     refname, outfname = fnames['svg']
