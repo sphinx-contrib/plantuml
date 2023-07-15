@@ -534,7 +534,8 @@ def _convert_eps_to_pdf(self, refname, fname):
     try:
         try:
             p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+                                 stderr=subprocess.PIPE,
+                                 encoding='utf-8')
         except OSError as err:
             # workaround for missing shebang of epstopdf script
             if err.errno != getattr(errno, 'ENOEXEC', 0):
