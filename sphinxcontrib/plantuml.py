@@ -332,7 +332,7 @@ class PlantumlBuilder(object):
         serr = p.communicate()[1]
         if p.returncode != 0:
             if self.builder.config.plantuml_syntax_error_image:
-                logger.warning('error while running plantuml\n\n%s' % serr)
+                logger.warning('error while running plantuml\n\n%s' % serr, type='plantuml')
             else:
                 raise PlantUmlError('error while running plantuml\n\n%s' % serr)
 
@@ -360,7 +360,7 @@ class PlantumlBuilder(object):
             serr = p.communicate(node['uml'].encode('utf-8'))[1]
             if p.returncode != 0:
                 if self.builder.config.plantuml_syntax_error_image:
-                    logger.warning('error while running plantuml\n\n%s' % serr)
+                    logger.warning('error while running plantuml\n\n%s' % serr, location=node, type='plantuml')
                 else:
                     raise PlantUmlError('error while running plantuml\n\n%s'
                                         % serr)
@@ -383,7 +383,7 @@ def _get_png_tag(self, fnames, node):
     if scale_attrs and Image is None:
         logger.warning(('plantuml: unsupported scaling attributes: %s '
                         '(install PIL or Pillow)'
-                        % ', '.join(scale_attrs)))
+                        % ', '.join(scale_attrs)), location=node, type='plantuml')
     if not scale_attrs or Image is None:
         return ('<img src="%s" alt="%s"/>\n'
                 % (self.encode(refname), self.encode(alt)))
@@ -414,7 +414,7 @@ def _get_png_tag(self, fnames, node):
             styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
                           for a, w in zip(['width', 'height'], im.size))
         except (IOError, OSError) as err:
-            logger.warning('plantuml: failed to get image size: %s' % err)
+            logger.warning('plantuml: failed to get image size: %s' % err, location=node, type='plantuml')
 
     return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
             '</a>\n'
@@ -499,14 +499,14 @@ def _lookup_html_format(fmt):
 
 
 @contextmanager
-def _prepare_html_render(self, fmt):
+def _prepare_html_render(self, fmt, node):
     if fmt == 'none':
         raise nodes.SkipNode
 
     try:
         yield _lookup_html_format(fmt)
     except PlantUmlError as err:
-        logger.warning(str(err))
+        logger.warning(str(err), location=node, type='plantuml')
         raise nodes.SkipNode
 
 
@@ -517,7 +517,7 @@ def html_visit_plantuml(self, node):
     else:
         fmt = self.builder.config.plantuml_output_format
 
-    with _prepare_html_render(self, fmt) as (fileformats, gettag):
+    with _prepare_html_render(self, fmt, node) as (fileformats, gettag):
         # fnames: {fileformat: (refname, outfname), ...}
         fnames = dict((e, render_plantuml(self, node, e))
                       for e in fileformats)
@@ -613,7 +613,7 @@ def latex_visit_plantuml(self, node):
         refname, outfname = render_plantuml(self, node, fileformat)
         refname, outfname = postproc(self, refname, outfname)
     except PlantUmlError as err:
-        logger.warning(str(err))
+        logger.warning(str(err), location=node, type='plantuml')
         raise nodes.SkipNode
 
     if fmt == 'tikz':
@@ -676,7 +676,7 @@ def text_visit_plantuml(self, node):
     try:
         text = render_plantuml_inline(self, node, 'txt')
     except PlantUmlError as err:
-        logger.warning(str(err))
+        logger.warning(str(err), location=node, type='plantuml')
         text = node['uml']  # fall back to uml text, which is still readable
 
     self.new_state()
@@ -691,14 +691,14 @@ def pdf_visit_plantuml(self, node):
         refname, outfname = render_plantuml(self, node, 'eps')
         refname, outfname = _convert_eps_to_pdf(self, refname, outfname)
     except PlantUmlError as err:
-        logger.warning(str(err))
+        logger.warning(str(err), location=node, type='plantuml')
         raise nodes.SkipNode
     rep = nodes.image(uri=outfname, alt=node.get('alt', node['uml']))
     node.parent.replace(node, rep)
 
 
 def unsupported_visit_plantuml(self, node):
-    logger.warning('plantuml: unsupported output format (node skipped)')
+    logger.warning('plantuml: unsupported output format (node skipped)', location=node, type='plantuml')
     raise nodes.SkipNode
 
 
