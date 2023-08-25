@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 
 if os.name == 'nt':
+
     def rename(src, dst):
         try:
             os.rename(src, dst)
@@ -52,6 +53,7 @@ if os.name == 'nt':
                 raise
             os.unlink(dst)
             os.rename(src, dst)
+
 else:
     rename = os.rename
 
@@ -90,6 +92,7 @@ class UmlDirective(Directive):
            Alice -> Bob: Hello
            Alice <- Bob: Hi
     """
+
     has_content = True
     required_arguments = 0
     optional_arguments = 1
@@ -111,8 +114,12 @@ class UmlDirective(Directive):
         warning = self.state.document.reporter.warning
         env = self.state.document.settings.env
         if self.arguments and self.content:
-            return [warning('uml directive cannot have both content and '
-                            'a filename argument', line=self.lineno)]
+            return [
+                warning(
+                    'uml directive cannot have both content and ' 'a filename argument',
+                    line=self.lineno,
+                )
+            ]
         if self.arguments:
             fn = i18n.search_image_for_language(self.arguments[0], env)
             relfn, absfn = env.relfn2path(fn)
@@ -120,8 +127,12 @@ class UmlDirective(Directive):
             try:
                 umlcode = _read_utf8(absfn)
             except (IOError, UnicodeDecodeError) as err:
-                return [warning('PlantUML file "%s" cannot be read: %s'
-                                % (fn, err), line=self.lineno)]
+                return [
+                    warning(
+                        'PlantUML file "%s" cannot be read: %s' % (fn, err),
+                        line=self.lineno,
+                    )
+                ]
         else:
             relfn = env.doc2path(env.docname, base=None)
             umlcode = '\n'.join(self.content)
@@ -138,8 +149,9 @@ class UmlDirective(Directive):
             if 'align' in self.options:
                 node['align'] = self.options['align']
         if 'caption' in self.options:
-            inodes, messages = self.state.inline_text(self.options['caption'],
-                                                      self.lineno)
+            inodes, messages = self.state.inline_text(
+                self.options['caption'], self.lineno
+            )
             caption_node = nodes.caption(self.options['caption'], '', *inodes)
             caption_node.extend(messages)
             set_source_info(self, caption_node)
@@ -175,8 +187,10 @@ def generate_name(self, node, fileformat):
     fname = 'plantuml-%s.%s' % (key, fileformat)
     imgpath = getattr(self.builder, 'imgpath', None)
     if imgpath:
-        return ('/'.join((self.builder.imgpath, fname)),
-                os.path.join(self.builder.outdir, '_images', fname))
+        return (
+            '/'.join((self.builder.imgpath, fname)),
+            os.path.join(self.builder.outdir, '_images', fname),
+        )
     else:
         return fname, os.path.join(self.builder.outdir, fname)
 
@@ -228,16 +242,19 @@ def render_plantuml(self, node, fileformat):
 def render_plantuml_inline(self, node, fileformat):
     absincdir = os.path.join(self.builder.srcdir, node['incdir'])
     try:
-        p = subprocess.Popen(generate_plantuml_args(self, node, fileformat),
-                             stdin=subprocess.PIPE,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             cwd=absincdir)
+        p = subprocess.Popen(
+            generate_plantuml_args(self, node, fileformat),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=absincdir,
+        )
     except OSError as err:
         if err.errno != errno.ENOENT:
             raise
-        raise PlantUmlError('plantuml command %r cannot be run'
-                            % self.builder.config.plantuml)
+        raise PlantUmlError(
+            'plantuml command %r cannot be run' % self.builder.config.plantuml
+        )
     sout, serr = p.communicate(node['uml'].encode('utf-8'))
     if p.returncode != 0:
         raise PlantUmlError('error while running plantuml\n\n%s' % serr)
@@ -251,8 +268,9 @@ class PlantumlBuilder(object):
         self.builder = builder
 
         self.batch_size = builder.config.plantuml_batch_size
-        self.cache_dir = os.path.join(builder.outdir,
-                                      builder.config.plantuml_cache_path)
+        self.cache_dir = os.path.join(
+            builder.outdir, builder.config.plantuml_cache_path
+        )
 
         self._base_cmdargs = _split_cmdargs(builder.config.plantuml)
         self._base_cmdargs.extend(['-charset', 'utf-8'])
@@ -287,8 +305,10 @@ class PlantumlBuilder(object):
 
             outdir = os.path.join(self.cache_dir, key[:2])
             outfbase = os.path.join(outdir, key)
-            if all(os.path.exists('%s.%s' % (outfbase, sfx))
-                   for sfx in ['puml'] + self.image_formats):
+            if all(
+                os.path.exists('%s.%s' % (outfbase, sfx))
+                for sfx in ['puml'] + self.image_formats
+            ):
                 continue
 
             ensuredir(outdir)
@@ -309,10 +329,11 @@ class PlantumlBuilder(object):
         pending_keys = sorted(self._pending_keys)
         for fileformat in self.image_formats:
             for i in range(0, len(pending_keys), self.batch_size):
-                keys = pending_keys[i:i + self.batch_size]
+                keys = pending_keys[i : i + self.batch_size]
                 with util.progress_message(
-                        'rendering plantuml diagrams [%d..%d/%d]'
-                        % (i, i + len(keys), len(pending_keys))):
+                    'rendering plantuml diagrams [%d..%d/%d]'
+                    % (i, i + len(keys), len(pending_keys))
+                ):
                     self._render_files(keys, fileformat)
 
         del self._pending_keys[:]
@@ -322,13 +343,13 @@ class PlantumlBuilder(object):
         cmdargs.extend(_ARGS_BY_FILEFORMAT[fileformat])
         cmdargs.extend(os.path.join(k[:2], '%s.puml' % k) for k in keys)
         try:
-            p = subprocess.Popen(cmdargs, stderr=subprocess.PIPE,
-                                 cwd=self.cache_dir)
+            p = subprocess.Popen(cmdargs, stderr=subprocess.PIPE, cwd=self.cache_dir)
         except OSError as err:
             if err.errno != errno.ENOENT:
                 raise
-            raise PlantUmlError('plantuml command %r cannot be run'
-                                % self.builder.config.plantuml)
+            raise PlantUmlError(
+                'plantuml command %r cannot be run' % self.builder.config.plantuml
+            )
         serr = p.communicate()[1]
         if p.returncode != 0:
             if self.builder.config.plantuml_syntax_error_image:
@@ -347,23 +368,25 @@ class PlantumlBuilder(object):
         absincdir = os.path.join(self.builder.srcdir, node['incdir'])
         with open(outfname + '.new', 'wb') as f:
             try:
-                p = subprocess.Popen(generate_plantuml_args(self, node,
-                                                            fileformat),
-                                     stdout=f, stdin=subprocess.PIPE,
-                                     stderr=subprocess.PIPE,
-                                     cwd=absincdir)
+                p = subprocess.Popen(
+                    generate_plantuml_args(self, node, fileformat),
+                    stdout=f,
+                    stdin=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    cwd=absincdir,
+                )
             except OSError as err:
                 if err.errno != errno.ENOENT:
                     raise
-                raise PlantUmlError('plantuml command %r cannot be run'
-                                    % self.builder.config.plantuml)
+                raise PlantUmlError(
+                    'plantuml command %r cannot be run' % self.builder.config.plantuml
+                )
             serr = p.communicate(node['uml'].encode('utf-8'))[1]
             if p.returncode != 0:
                 if self.builder.config.plantuml_syntax_error_image:
                     logger.warning('error while running plantuml\n\n%s' % serr)
                 else:
-                    raise PlantUmlError('error while running plantuml\n\n%s'
-                                        % serr)
+                    raise PlantUmlError('error while running plantuml\n\n%s' % serr)
 
         rename(outfname + '.new', outfname)
         return outfname
@@ -381,12 +404,14 @@ def _get_png_tag(self, fnames, node):
     # process images prior to html_vist.
     scale_attrs = [k for k in ('scale', 'width', 'height') if k in node]
     if scale_attrs and Image is None:
-        logger.warning(('plantuml: unsupported scaling attributes: %s '
-                        '(install PIL or Pillow)'
-                        % ', '.join(scale_attrs)))
+        logger.warning(
+            (
+                'plantuml: unsupported scaling attributes: %s '
+                '(install PIL or Pillow)' % ', '.join(scale_attrs)
+            )
+        )
     if not scale_attrs or Image is None:
-        return ('<img src="%s" alt="%s"/>\n'
-                % (self.encode(refname), self.encode(alt)))
+        return '<img src="%s" alt="%s"/>\n' % (self.encode(refname), self.encode(alt))
 
     scale = node.get('scale', 100)
     styles = []
@@ -411,17 +436,19 @@ def _get_png_tag(self, fnames, node):
         try:
             im = Image.open(outfname)
             im.load()
-            styles.extend('%s: %s%s' % (a, w * scale / 100, 'px')
-                          for a, w in zip(['width', 'height'], im.size))
+            styles.extend(
+                '%s: %s%s' % (a, w * scale / 100, 'px')
+                for a, w in zip(['width', 'height'], im.size)
+            )
         except (IOError, OSError) as err:
             logger.warning('plantuml: failed to get image size: %s' % err)
 
-    return ('<a href="%s"><img src="%s" alt="%s" style="%s"/>'
-            '</a>\n'
-            % (self.encode(refname),
-               self.encode(refname),
-               self.encode(alt),
-               self.encode('; '.join(styles))))
+    return '<a href="%s"><img src="%s" alt="%s" style="%s"/>' '</a>\n' % (
+        self.encode(refname),
+        self.encode(refname),
+        self.encode(alt),
+        self.encode('; '.join(styles)),
+    )
 
 
 def _get_svg_style(fname):
@@ -444,9 +471,11 @@ def _get_svg_style(fname):
 
 
 def _svg_get_style_str(node, outfname):
-    width_height_styles = ["%s:%s" % (key, val)
-                           for key, val in node.attributes.items()
-                           if key in ['width', 'height', 'max-width']]
+    width_height_styles = [
+        "%s:%s" % (key, val)
+        for key, val in node.attributes.items()
+        if key in ['width', 'height', 'max-width']
+    ]
     if width_height_styles:
         style_str = '; '.join(width_height_styles)
     else:
@@ -457,28 +486,32 @@ def _svg_get_style_str(node, outfname):
 def _get_svg_tag(self, fnames, node):
     refname, outfname = fnames['svg']
     style_str = _svg_get_style_str(node, outfname)
-    return '\n'.join([
-        # copy width/height style from <svg> tag, so that <object> area
-        # has enough space.
-        '<object data="%s" type="image/svg+xml" style="%s">' % (
-            self.encode(refname), style_str),
-        _get_png_tag(self, fnames, node),
-        '</object>'])
+    return '\n'.join(
+        [
+            # copy width/height style from <svg> tag, so that <object> area
+            # has enough space.
+            '<object data="%s" type="image/svg+xml" style="%s">'
+            % (self.encode(refname), style_str),
+            _get_png_tag(self, fnames, node),
+            '</object>',
+        ]
+    )
 
 
 def _get_svg_img_tag(self, fnames, node):
     refname, outfname = fnames['svg']
     alt = node.get('alt', node['uml'])
-    return ('<img src="%s" alt="%s"/>'
-            % (self.encode(refname), self.encode(alt)))
+    return '<img src="%s" alt="%s"/>' % (self.encode(refname), self.encode(alt))
 
 
 def _get_svg_obj_tag(self, fnames, node):
     refname, outfname = fnames['svg']
     # copy width/height style from <svg> tag, so that <object> area
     # has enough space.
-    return ('<object data="%s" type="image/svg+xml" style="%s"></object>'
-            % (self.encode(refname), _get_svg_style(outfname) or ''))
+    return '<object data="%s" type="image/svg+xml" style="%s"></object>' % (
+        self.encode(refname),
+        _get_svg_style(outfname) or '',
+    )
 
 
 _KNOWN_HTML_FORMATS = {
@@ -495,7 +528,8 @@ def _lookup_html_format(fmt):
     except KeyError:
         raise PlantUmlError(
             'plantuml_output_format must be one of %s, but is %r'
-            % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt))
+            % (', '.join(map(repr, _KNOWN_HTML_FORMATS)), fmt)
+        )
 
 
 @contextmanager
@@ -519,8 +553,7 @@ def html_visit_plantuml(self, node):
 
     with _prepare_html_render(self, fmt) as (fileformats, gettag):
         # fnames: {fileformat: (refname, outfname), ...}
-        fnames = dict((e, render_plantuml(self, node, e))
-                      for e in fileformats)
+        fnames = dict((e, render_plantuml(self, node, e)) for e in fileformats)
 
     self.body.append(self.starttag(node, 'p', CLASS='plantuml'))
     self.body.append(gettag(self, fnames, node))
@@ -533,19 +566,20 @@ def _convert_eps_to_pdf(self, refname, fname):
     args.append(fname)
     try:
         try:
-            p = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         except OSError as err:
             # workaround for missing shebang of epstopdf script
             if err.errno != getattr(errno, 'ENOEXEC', 0):
                 raise
-            p = subprocess.Popen(['bash'] + args, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                ['bash'] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
     except OSError as err:
         if err.errno != errno.ENOENT:
             raise
-        raise PlantUmlError('epstopdf command %r cannot be run'
-                            % self.builder.config.plantuml_epstopdf)
+        raise PlantUmlError(
+            'epstopdf command %r cannot be run' % self.builder.config.plantuml_epstopdf
+        )
     serr = p.communicate()[1]
     if p.returncode != 0:
         raise PlantUmlError('error while running epstopdf\n\n%s' % serr)
@@ -566,7 +600,8 @@ def _lookup_latex_format(fmt):
     except KeyError:
         raise PlantUmlError(
             'plantuml_latex_output_format must be one of %s, but is %r'
-            % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), fmt))
+            % (', '.join(map(repr, _KNOWN_LATEX_FORMATS)), fmt)
+        )
 
 
 def _latex_adjustbox_options(self, node):
@@ -587,8 +622,7 @@ def _latex_adjustbox_options(self, node):
             adjustbox_options.append('height=%s' % h)
     if 'scale' in node:
         if not adjustbox_options:
-            adjustbox_options.append('scale=%s'
-                                     % (float(node['scale']) / 100.0))
+            adjustbox_options.append('scale=%s' % (float(node['scale']) / 100.0))
     return adjustbox_options
 
 
@@ -657,7 +691,8 @@ def confluence_visit_plantuml(self, node):
     if fmt not in _KNOWN_CONFLUENCE_FORMATS:
         raise PlantUmlError(
             'plantuml_output_format must be one of %s, but is %r'
-            % (', '.join(map(repr, _KNOWN_CONFLUENCE_FORMATS)), fmt))
+            % (', '.join(map(repr, _KNOWN_CONFLUENCE_FORMATS)), fmt)
+        )
 
     _, outfname = render_plantuml(self, node, fmt)
 
@@ -736,8 +771,7 @@ def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
     try:
-        app.add_config_value('plantuml', 'plantuml', 'html',
-                             types=(str, tuple, list))
+        app.add_config_value('plantuml', 'plantuml', 'html', types=(str, tuple, list))
     except TypeError:
         # Sphinx < 1.4?
         app.add_config_value('plantuml', 'plantuml', 'html')
@@ -754,6 +788,7 @@ def setup(app):
     # imitate what app.add_node() does
     if 'rst2pdf.pdfbuilder' in app.config.extensions:
         from rst2pdf.pdfbuilder import PDFTranslator as translator
+
         setattr(translator, 'visit_' + plantuml.__name__, pdf_visit_plantuml)
 
     return {'parallel_read_safe': True}
