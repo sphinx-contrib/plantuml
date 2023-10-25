@@ -17,6 +17,7 @@ import re
 import shlex
 import shutil
 import subprocess
+import tempfile
 from contextlib import contextmanager
 
 from docutils import nodes
@@ -362,13 +363,17 @@ class PlantumlBuilder(object):
     def render(self, node, fileformat):
         key = hash_plantuml_node(node)
         outdir = os.path.join(self.cache_dir, key[:2])
-        outfname = os.path.join(outdir, '%s.%s' % (key, fileformat))
+        basename = '%s.%s' % (key, fileformat)
+        outfname = os.path.join(outdir, basename)
         if os.path.exists(outfname):
             return outfname
 
         ensuredir(outdir)
         absincdir = os.path.join(self.builder.srcdir, node['incdir'])
-        with open(outfname + '.new', 'wb') as f:
+        # TODO: delete_on_close can be used on Python 3.12+
+        with tempfile.NamedTemporaryFile(
+            prefix=basename + '.new', dir=outdir, delete=False
+        ) as f:
             try:
                 p = subprocess.Popen(
                     generate_plantuml_args(self, node, fileformat),
@@ -394,7 +399,12 @@ class PlantumlBuilder(object):
                 else:
                     raise PlantUmlError('error while running plantuml\n\n%s' % serr)
 
-        rename(outfname + '.new', outfname)
+            # inherit dir mode since temp file isn't world-readable by default.
+            if os.name == 'posix':
+                os.fchmod(f.fileno(), os.lstat(outdir).st_mode & 0o666)
+            f.close()
+            rename(f.name, outfname)
+
         return outfname
 
 
