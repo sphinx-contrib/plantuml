@@ -24,7 +24,7 @@ from docutils import nodes
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 
-from sphinx import util
+import sphinx
 from sphinx.errors import SphinxError
 from sphinx.util import (
     i18n,
@@ -327,11 +327,17 @@ class PlantumlBuilder(object):
             self._pending_keys.append(key)
 
     def render_batches(self):
+        if sphinx.version_info[:2] >= (6, 1):
+            from sphinx.util.display import progress_message
+        else:
+            from sphinx.util import progress_message
+
         pending_keys = sorted(self._pending_keys)
         for fileformat in self.image_formats:
             for i in range(0, len(pending_keys), self.batch_size):
                 keys = pending_keys[i : i + self.batch_size]
-                with util.progress_message(
+
+                with progress_message(
                     'rendering plantuml diagrams [%d..%d/%d]'
                     % (i, i + len(keys), len(pending_keys))
                 ):
