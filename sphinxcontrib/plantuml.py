@@ -802,6 +802,7 @@ def _on_doctree_resolved(app, doctree, docname):
 def setup(app):
     app.add_node(plantuml, **_NODE_VISITORS)
     app.add_directive('uml', UmlDirective)
+    app.add_directive('plantuml', UmlDirective)
     try:
         app.add_config_value('plantuml', 'plantuml', 'html', types=(str, tuple, list))
     except TypeError:
