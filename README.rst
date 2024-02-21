@@ -36,7 +36,8 @@ Instead, you can install a wrapper script in your PATH:
    EOT
    % chmod +x /usr/local/bin/plantuml
 
-Then, write PlantUML text under the ``.. uml::`` directive::
+Then, write PlantUML text under the ``.. uml::`` (or `.. plantuml::`)
+directive::
 
     .. uml::
 
