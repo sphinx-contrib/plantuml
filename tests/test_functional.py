@@ -309,6 +309,19 @@ def test_buildlatex_simple_height_with_tikz():
                      readfile('plantuml_fixture.tex'))
 
 
+@with_runsphinx('latex', plantuml_latex_output_format='tikz')
+def test_buildlatex_simple_max_width_with_tikz():
+    """Generate simple LaTeX with TikZ
+
+    .. uml::
+       :max-width: 50mm
+
+       Hello
+    """
+    assert re.search(br'\\adjustbox\{max width=50mm\}\{\\input\{+plantuml-',
+                     readfile('plantuml_fixture.tex'))
+
+
 @with_runsphinx('latex', plantuml_latex_output_format='pdf')
 def test_buildlatex_simple_with_pdf():
     """Generate simple LaTeX with PDF
