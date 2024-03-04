@@ -632,7 +632,7 @@ def _lookup_latex_format(fmt):
         )
 
 
-def _latex_adjustbox_options(self, node):
+def _latex_adjustbox_options(self, node):  # noqa: C901
     adjustbox_options = []
     if 'width' in node:
         if 'scale' in node:
@@ -651,6 +651,13 @@ def _latex_adjustbox_options(self, node):
     if 'scale' in node:
         if not adjustbox_options:
             adjustbox_options.append('scale=%s' % (float(node['scale']) / 100.0))
+    if 'max-width' in node:
+        if 'scale' in node:
+            w = self.latex_image_length(node['max-width'], node['scale'])
+        else:
+            w = self.latex_image_length(node['max-width'])
+        if w:
+            adjustbox_options.append('max width=%s' % w)
     return adjustbox_options
 
 
