@@ -5,12 +5,12 @@ import tempfile
 from sphinxcontrib import plantuml
 
 
-def setup():
+def setup_module():
     global _tempdir
     _tempdir = tempfile.mkdtemp()
 
 
-def teardown():
+def teardown_module():
     shutil.rmtree(_tempdir)
 
 
