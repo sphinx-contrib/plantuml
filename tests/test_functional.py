@@ -12,7 +12,7 @@ _fixturedir = os.path.join(os.path.dirname(__file__), 'fixture')
 _fakecmd = os.path.join(os.path.dirname(__file__), 'fakecmd.py')
 
 
-def setup():
+def setup_module():
     global _tempdir, _srcdir, _outdir
     _tempdir = tempfile.mkdtemp()
     _srcdir = os.path.join(_tempdir, 'src')
@@ -20,7 +20,7 @@ def setup():
     os.mkdir(_srcdir)
 
 
-def teardown():
+def teardown_module():
     shutil.rmtree(_tempdir)
 
 
