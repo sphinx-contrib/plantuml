@@ -758,8 +758,7 @@ def text_visit_plantuml(self, node):
 def pdf_visit_plantuml(self, node):
     _render_batches_on_vist(self)
     try:
-        refname, outfname = render_plantuml(self, node, 'eps')
-        refname, outfname = _convert_eps_to_pdf(self, refname, outfname)
+        _, outfname = render_plantuml(self, node, 'svg')
     except PlantUmlError as err:
         logger.warning(str(err), location=node, type='plantuml')
         raise nodes.SkipNode
