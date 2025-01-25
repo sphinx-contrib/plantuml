@@ -1,4 +1,5 @@
 import glob
+import inspect
 import os
 import re
 import tempfile
@@ -55,7 +56,7 @@ def with_runsphinx(builder, **kwargs):
                     rst2pdf.__file__
                 except ImportError:
                     raise unittest.SkipTest
-            src = '\n'.join(l[4:] for l in func.__doc__.splitlines()[2:])
+            src = ''.join(inspect.getdoc(func).splitlines(keepends=True)[2:])
             os.mkdir(_outdir)
             try:
                 runsphinx(src, builder, confoverrides)
