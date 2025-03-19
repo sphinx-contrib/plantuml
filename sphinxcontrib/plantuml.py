@@ -213,6 +213,7 @@ def _split_cmdargs(args):
 
 _ARGS_BY_FILEFORMAT = {
     'eps': ['-teps'],
+    'eps:text': ['-teps:text'],
     'png': [],
     'svg': ['-tsvg'],
     'txt': ['-ttxt'],
@@ -228,12 +229,14 @@ def generate_plantuml_args(self, node, fileformat):
     return args
 
 
-def render_plantuml(self, node, fileformat):
+def render_plantuml(self, node, fileformat, plantuml_type=None):
+    if not plantuml_type:
+        plantuml_type = fileformat
     refname, outfname = generate_name(self, node, fileformat)
     if os.path.exists(outfname):
         return refname, outfname  # don't regenerate
 
-    cachefname = self.builder.plantuml_builder.render(node, fileformat)
+    cachefname = self.builder.plantuml_builder.render(node, fileformat, plantuml_type)
     ensuredir(os.path.dirname(outfname))
     # TODO: optionally do symlink/link
     shutil.copyfile(cachefname, outfname)
@@ -285,7 +288,7 @@ class PlantumlBuilder(object):
         elif builder.format == 'latex':
             fmt = builder.config.plantuml_latex_output_format
             if fmt != 'none':
-                fileformat, _postproc = _lookup_latex_format(fmt)
+                fileformat, _postproc, _plantuml_type = _lookup_latex_format(fmt)
                 self.image_formats = [fileformat]
 
         self._known_keys = set()
@@ -366,7 +369,7 @@ class PlantumlBuilder(object):
             else:
                 raise PlantUmlError('error while running plantuml\n\n%s' % serr)
 
-    def render(self, node, fileformat):
+    def render(self, node, fileformat, plantuml_type):
         key = hash_plantuml_node(node)
         outdir = os.path.join(self.cache_dir, key[:2])
         basename = '%s.%s' % (key, fileformat)
@@ -382,7 +385,7 @@ class PlantumlBuilder(object):
         ) as f:
             try:
                 p = subprocess.Popen(
-                    generate_plantuml_args(self, node, fileformat),
+                    generate_plantuml_args(self, node, plantuml_type),
                     stdout=f,
                     stdin=subprocess.PIPE,
                     stderr=subprocess.PIPE,
@@ -615,10 +618,10 @@ def _convert_eps_to_pdf(self, refname, fname):
 
 
 _KNOWN_LATEX_FORMATS = {
-    'eps': ('eps', lambda self, refname, fname: (refname, fname)),
-    'pdf': ('eps', _convert_eps_to_pdf),
-    'png': ('png', lambda self, refname, fname: (refname, fname)),
-    'tikz': ('latex', lambda self, refname, fname: (refname, fname)),
+    'eps': ('eps', 'eps', lambda self, refname, fname: (refname, fname)),
+    'pdf': ('eps', 'eps:text', _convert_eps_to_pdf),
+    'png': ('png','png', lambda self, refname, fname: (refname, fname)),
+    'tikz': ('latex', 'latex', lambda self, refname, fname: (refname, fname)),
 }
 
 
@@ -678,8 +681,8 @@ def latex_visit_plantuml(self, node):
     if fmt == 'none':
         raise nodes.SkipNode
     try:
-        fileformat, postproc = _lookup_latex_format(fmt)
-        refname, outfname = render_plantuml(self, node, fileformat)
+        fileformat, plantuml_type, postproc = _lookup_latex_format(fmt)
+        refname, outfname = render_plantuml(self, node, fileformat, plantuml_type)
         refname, outfname = postproc(self, refname, outfname)
     except PlantUmlError as err:
         logger.warning(str(err), location=node, type='plantuml')
