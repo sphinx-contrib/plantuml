@@ -830,4 +830,25 @@ def setup(app):
 
         setattr(translator, 'visit_' + plantuml.__name__, pdf_visit_plantuml)
 
+    if 'sphinxcontrib.inkscapeconverter' in app.config.extensions:
+      from sphinxcontrib.inkscapeconverter import InkscapeConverter
+      def inkscape_svg_to_pdf(node, refname, fname):
+        InkscapeConverter(node.document).convert(fname, fname[:-4]+".pdf")
+        return (refname[:-4]+".pdf", fname[:-4]+".pdf")
+      _KNOWN_LATEX_FORMATS['inkscape'] = ('svg', inkscape_svg_to_pdf)
+
+    if 'sphinxcontrib.cairosvgconverter' in app.config.extensions:
+      from sphinxcontrib.cairosvgconverter import CairoSVGConverter
+      def cairosvg_svg_to_pdf(node, refname, fname):
+        CairoSVGConverter(node.document).convert(fname, fname[:-4]+".pdf")
+        return (refname[:-4]+".pdf", fname[:-4]+".pdf")
+      _KNOWN_LATEX_FORMATS['cairosvg'] = ('svg', cairosvg_svg_to_pdf)
+
+    if 'sphinxcontrib.rsvgconverter' in app.config.extensions:
+      from sphinxcontrib.rsvgconverter import RSVGConverter
+      def rsvg_svg_to_pdf(node, refname, fname):
+        RSVGConverter(node.document).convert(fname, fname[:-4]+".pdf")
+        return (refname[:-4]+".pdf", fname[:-4]+".pdf")
+      _KNOWN_LATEX_FORMATS['rsvg'] = ('svg', rsvg_svg_to_pdf)
+
     return {'parallel_read_safe': True}
