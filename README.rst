@@ -96,6 +96,13 @@ plantuml_latex_output_format
   :tikz: generate .latex in the TikZ format
   :none: do not generate any images (ignore uml directive)
 
+  The following values utilize the converters provided by sphinxcontrib-svg2pdfconverter, they generate an .svg and convert it to pdf.
+  This should create accurate diagrams without overlapping text.
+  They are only available if the respective extension is loaded.
+  :inkscape: generate .svg and convert to .pdf using sphinxcontrib.inkscapeconverter
+  :cairosvg: generate .svg and convert to .pdf using sphinxcontrib.cairosvgconverter
+  :rsvg: generate .svg and convert to .pdf using sphinxcontrib.rsvgconverter
+
   Because embedded png looks pretty bad, it is recommended to choose `pdf`
   for `pdflatex` or `eps` for `platex`.
 
