@@ -90,14 +90,20 @@ plantuml_output_format
 plantuml_latex_output_format
   Type of output image for LaTeX renderer. (default: 'png')
 
+  :svg_pdf: generate .svg and convert it to .pdf (requires registered ImageConverter)
+  :eps_pdf: generate .eps and convert it to .pdf (requires `epstopdf`)
+  :pdf: use `svg_pdf` if available, fallback to `eps_pdf`
   :eps: generate .eps (not supported by `pdflatex`)
-  :pdf: generate .eps and convert it to .pdf (requires `epstopdf`)
   :png: generate .png
   :tikz: generate .latex in the TikZ format
   :none: do not generate any images (ignore uml directive)
 
-  Because embedded png looks pretty bad, it is recommended to choose `pdf`
-  for `pdflatex` or `eps` for `platex`.
+  Because embedded png looks pretty bad, it is recommended
+  to choose `svg_pdf`.
+
+  An example for the registered ImageConverter would be
+  sphinxcontrib.inkscapeconverter from sphinxcontrib-svg2pdfconverter.
+  The first detected converter that supports .svg to .pdf is used.
 
 plantuml_epstopdf
   Path to epstopdf executable. (default: 'epstopdf')
