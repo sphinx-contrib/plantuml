@@ -839,7 +839,7 @@ def setup(app):
     app.add_config_value('plantuml_cache_path', '_plantuml', '')
     app.add_config_value('plantuml_batch_size', 1, '')
     app.connect('builder-inited', _on_builder_inited)
-    if not app.config.plantuml_latex_use_eps_to_pdf:
+    if app.config.plantuml_latex_output_format == 'pdf' and not app.config.plantuml_latex_use_eps_to_pdf:
         app.connect('builder-inited', _svg_to_pdf_init)
     app.connect('doctree-read', _on_doctree_read)
     app.connect('doctree-resolved', _on_doctree_resolved)
