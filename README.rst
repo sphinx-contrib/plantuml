@@ -90,16 +90,16 @@ plantuml_output_format
 plantuml_latex_output_format
   Type of output image for LaTeX renderer. (default: 'png')
 
-  :svg: generate .svg and convert it to .pdf using registered ImageConverter
+  :pdf: | generate .svg and convert it to .pdf (requires registered ImageConverter)
+        | or generate .eps and convert it to .pdf (requires `epstopdf`)
   :eps: generate .eps (not supported by `pdflatex`)
-  :pdf: generate .eps and convert it to .pdf (requires `epstopdf`)
   :png: generate .png
   :tikz: generate .latex in the TikZ format
   :none: do not generate any images (ignore uml directive)
 
   Because embedded png looks pretty bad, it is recommended
-  to choose `svg` if you already have a converter set up,
-  or `pdf` for `pdflatex` or `eps` for `platex`.
+  to choose `pdf` with intermediate svg file.
+  To return to the previous default of using an intermediate eps set the option `plantuml_latex_use_eps_to_pdf=True`, or choose `eps` for `platex`.
 
   An example for the registered ImageConverter would be
   sphinxcontrib.inkscapeconverter from sphinxcontrib-svg2pdfconverter.
@@ -126,6 +126,9 @@ plantuml_batch_size
   runtime and allows plantuml to leverage multiple CPU cores.
 
   To enable batch rendering, set the size to 100-1000.
+
+plantuml_latex_use_eps_to_pdf
+  Set to `True` to revert `plantuml_latex_output_format="pdf"` to using `eps` instead of `svg`.
 
 Developing
 ----------
