@@ -615,28 +615,28 @@ def _convert_eps_to_pdf(self, refname, fname):
         raise PlantUmlError('error while running epstopdf\n\n%s' % serr)
     return refname[:-4] + '.pdf', fname[:-4] + '.pdf'
 
-def _svg_to_pdf_default(node, refname, fname):
-    raise PlantUmlError('plantuml_latex_output_format svg was selected but no ImageConverter for svg to pdf was found.')
-
 def _svg_to_pdf_init(app):
     for transform in app.registry.get_post_transforms():
         if issubclass(transform, ImageConverter):
             for source_type, target_type in transform.conversion_rules:
                 if 'svg' in source_type and 'pdf' in target_type:
 
-                    def _svg_to_pdf(node, refname, fname, transform=transform):
+
+                    def _convert_svg_to_pdf(node, refname, fname, transform=transform):
                         transform(node.document).convert(fname, fname[:-4] + '.pdf')
                         return (refname[:-4] + '.pdf', fname[:-4] + '.pdf')
 
-                    _KNOWN_LATEX_FORMATS['svg'] = ('svg', _svg_to_pdf)
+
+                    _KNOWN_LATEX_FORMATS['pdf'] = ('svg', _convert_svg_to_pdf)
                     return
+
+    raise PlantUmlError('No ImageConverter for svg to pdf was found. Enable one or set plantuml_latex_use_eps_to_pdf.')
 
 _KNOWN_LATEX_FORMATS = {
     'eps': ('eps', lambda self, refname, fname: (refname, fname)),
     'pdf': ('eps', _convert_eps_to_pdf),
     'png': ('png', lambda self, refname, fname: (refname, fname)),
-    'tikz': ('latex', lambda self, refname, fname: (refname, fname)),
-    'svg': ('svg', _svg_to_pdf_default)
+    'tikz': ('latex', lambda self, refname, fname: (refname, fname))
 }
 
 def _lookup_latex_format(fmt):
@@ -834,11 +834,13 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
+    app.add_config_value('plantuml_latex_use_eps_to_pdf', False, '')
     app.add_config_value('plantuml_syntax_error_image', False, '')
     app.add_config_value('plantuml_cache_path', '_plantuml', '')
     app.add_config_value('plantuml_batch_size', 1, '')
     app.connect('builder-inited', _on_builder_inited)
-    app.connect('builder-inited', _svg_to_pdf_init)
+    if not app.config.plantuml_latex_use_eps_to_pdf:
+        app.connect('builder-inited', _svg_to_pdf_init)
     app.connect('doctree-read', _on_doctree_read)
     app.connect('doctree-resolved', _on_doctree_resolved)
 
