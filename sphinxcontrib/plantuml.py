@@ -21,6 +21,7 @@ import tempfile
 from contextlib import contextmanager
 
 from docutils import nodes
+from docutils.utils import new_document
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 
@@ -619,20 +620,30 @@ def _convert_eps_to_pdf(self, refname, fname):
 def _svg_to_pdf_init(app):
     for transform in app.registry.get_post_transforms():
         if issubclass(transform, ImageConverter):
+            converter = transform(new_document(""))
+            if not converter.is_available():
+                continue
             for source_type, target_type in transform.conversion_rules:
                 if 'svg' in source_type and 'pdf' in target_type:
 
-                    def _convert_svg_to_pdf(node, refname, fname, transform=transform):
-                        transform(node.document).convert(fname, fname[:-4] + '.pdf')
+                    def _convert_svg_to_pdf(node, refname, fname, converter=converter):
+                        converter.convert(fname, fname[:-4] + '.pdf')
                         return (refname[:-4] + '.pdf', fname[:-4] + '.pdf')
 
                     _KNOWN_LATEX_FORMATS['pdf'] = ('svg', _convert_svg_to_pdf)
                     return
 
-    raise PlantUmlError(
-        'No ImageConverter for svg to pdf was found. '
-        'Enable one or set plantuml_latex_use_eps_to_pdf.'
-    )
+    if app.config.plantuml_latex_pdf_intermediate == 'svg':
+        raise PlantUmlError(
+            'No ImageConverter for svg to pdf was found. '
+        )
+    else:
+        logger.warning(
+            'plantuml: No ImageConverter for svg to pdf was found. '
+            'Falling back to eps. '
+            'Set plantuml_latex_pdf_intermediate="eps" to suppress this warning.',
+            type='plantuml',
+        )
 
 
 _KNOWN_LATEX_FORMATS = {
@@ -838,13 +849,13 @@ def setup(app):
     app.add_config_value('plantuml_output_format', 'png', 'html')
     app.add_config_value('plantuml_epstopdf', 'epstopdf', '')
     app.add_config_value('plantuml_latex_output_format', 'png', '')
-    app.add_config_value('plantuml_latex_use_eps_to_pdf', False, '')
+    app.add_config_value('plantuml_latex_pdf_intermediate', 'auto', '')
     app.add_config_value('plantuml_syntax_error_image', False, '')
     app.add_config_value('plantuml_cache_path', '_plantuml', '')
     app.add_config_value('plantuml_batch_size', 1, '')
     app.connect('builder-inited', _on_builder_inited)
     if app.config.plantuml_latex_output_format == 'pdf':
-        if not app.config.plantuml_latex_use_eps_to_pdf:
+        if app.config.plantuml_latex_pdf_intermediate in ('auto', 'svg'):
             app.connect('builder-inited', _svg_to_pdf_init)
     app.connect('doctree-read', _on_doctree_read)
     app.connect('doctree-resolved', _on_doctree_resolved)
