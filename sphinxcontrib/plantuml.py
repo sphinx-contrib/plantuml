@@ -650,7 +650,7 @@ _KNOWN_LATEX_FORMATS = {
     'eps': ('eps', lambda self, refname, fname: (refname, fname)),
     'pdf': ('eps', _convert_eps_to_pdf),
     'png': ('png', lambda self, refname, fname: (refname, fname)),
-    'tikz': ('latex', lambda self, refname, fname: (refname, fname))
+    'tikz': ('latex', lambda self, refname, fname: (refname, fname)),
 }
 
 
