@@ -21,7 +21,6 @@ import tempfile
 from contextlib import contextmanager
 
 from docutils import nodes
-from docutils.utils import new_document
 from docutils.parsers.rst import directives
 from docutils.parsers.rst import Directive
 
