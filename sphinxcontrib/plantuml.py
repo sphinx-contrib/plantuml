@@ -256,7 +256,7 @@ def render_plantuml_inline(self, node, fileformat):
         if err.errno != errno.ENOENT:
             raise
         raise PlantUmlError(
-            'plantuml command %r cannot be run' % self.builder.config.plantuml
+            f'plantuml command {self.builder.config.plantuml} cannot be run'
         )
     sout, serr = p.communicate(node['uml'].encode('utf-8'))
     if p.returncode != 0:
@@ -394,7 +394,7 @@ class PlantumlBuilder(object):
                 if err.errno != errno.ENOENT:
                     raise
                 raise PlantUmlError(
-                    'plantuml command %r cannot be run' % self.builder.config.plantuml
+                    f'plantuml command {self.builder.config.plantuml} cannot be run'
                 )
             serr = p.communicate(node['uml'].encode('utf-8'))[1]
             if p.returncode != 0:
