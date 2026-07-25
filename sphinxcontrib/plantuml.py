@@ -18,6 +18,7 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+import time
 from contextlib import contextmanager
 
 from docutils import nodes
@@ -45,18 +46,47 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-
 if os.name == 'nt':
+    # On some Windows systems a race condition may occur
+    #   during 'os.rename', raising one of below errors.
+    #   Retrying typically works around the timing issue.
+    RETRYABLE_ERRNOS = {
+        errno.EACCES,
+        errno.EEXIST,
+        errno.EPERM
+    }
+    if hasattr(errno, "EBUSY"):
+        RETRYABLE_ERRNOS.add(errno.EBUSY)
+    RETRYABLE_WINERRORS = {
+        5,      # ERROR_ACCESS_DENIED
+        32,     # ERROR_SHARING_VIOLATION (file in use)
+        80,     # ERROR_FILE_EXISTS,
+        183,    # ERROR_ALREADY_EXISTS
+    }
 
-    def rename(src, dst):
-        try:
-            os.rename(src, dst)
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-            os.unlink(dst)
-            os.rename(src, dst)
+    def is_retryable_error(error):
+        return (
+            error.errno in RETRYABLE_ERRNOS
+            or getattr(error, "winerror", None) in RETRYABLE_WINERRORS
+        )
 
+    def rename_with_retry(src, dst, attempts=50, delay_seconds=0.1):
+        if attempts < 1:
+            raise ValueError("Minimum attempts is 1, provided attempts = {attempts}")
+
+        attempt = 0
+        while True:
+            try:
+                os.replace(src, dst)
+                return
+            except OSError as err:
+                is_last_attempt = attempt == attempts - 1
+                if not is_retryable_error(err) or is_last_attempt:
+                    raise
+                attempt = attempt + 1
+                time.sleep(delay_seconds)
+
+    rename = rename_with_retry
 else:
     rename = os.rename
 
