@@ -4,7 +4,7 @@ TWINE = twine
 
 .PHONY: dist
 dist:
-	$(FAKEROOT) $(PYTHON) setup.py sdist
+	$(FAKEROOT) $(PYTHON) -m build
 
 .PHONY: upload
 upload: dist
@@ -16,7 +16,7 @@ check:
 
 .PHONY: clean
 clean:
-	$(PYTHON) setup.py clean
+	$(RM) -R build
 
 .PHONY: distclean
 distclean: clean

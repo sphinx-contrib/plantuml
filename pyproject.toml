@@ -1,6 +1,39 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "sphinxcontrib-plantuml"
+version = "0.31"
+description = 'Sphinx "plantuml" extension'
+readme = "README.rst"
+authors = [{ name = "Yuya Nishihara", email = "yuya@tcha.org" }]
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Framework :: Sphinx :: Extension",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Topic :: Documentation",
+    "Topic :: Utilities",
+]
+dependencies = ["Sphinx>=1.6"]
+
+[project.optional-dependencies]
+test = ["pytest", "Pillow", "flake8"]
+
+[project.urls]
+Homepage = "https://github.com/sphinx-contrib/plantuml/"
+Download = "https://pypi.python.org/pypi/sphinxcontrib-plantuml"
+
+[tool.setuptools]
+# sphinxcontrib is an implicit namespace package shared with the other
+# sphinxcontrib-* distributions, so it must not have an __init__.py.
+packages = ["sphinxcontrib"]
 
 [tool.black]
 skip-string-normalization = true
